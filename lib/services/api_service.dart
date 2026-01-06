@@ -7,7 +7,7 @@ import '../models/customerwallet.dart';
 import '../models/feedbackmodel.dart';
 
 class ApiService {
-  static const String baseUrl = "http://10.0.2.2/carwash_api";
+  static const String baseUrl = "http://localhost/carwash_api";
 
   static const Map<String, String> headers = {
     "Content-Type": "application/json",
@@ -80,17 +80,23 @@ class ApiService {
   /* ===================== BOOKINGS ===================== */
 
   /// ➕ Create Booking
-  static Future<Map<String, dynamic>> createBooking(
+ static Future<Map<String, dynamic>> createBookingWithCar(
     Booking booking,
-  ) async {
-    final response = await http.post(
-      Uri.parse("$baseUrl/booking.php"),
-      headers: headers,
-      body: jsonEncode(booking.toJson()),
-    );
+    String carModel,
+    String carPlate,
+) async {
+  final response = await http.post(
+    Uri.parse("$baseUrl/booking.php"),
+    headers: {"Content-Type": "application/json"},
+    body: jsonEncode({
+      ...booking.toJson(),
+      "car_model": carModel,
+      "car_plate": carPlate,
+    }),
+  );
 
-    return jsonDecode(response.body);
-  }
+  return jsonDecode(response.body);
+}
 
   /// 📄 Get Customer Bookings
   static Future<List<Booking>> getCustomerBookings(
@@ -115,18 +121,25 @@ class ApiService {
     }
   }
 
-  /// ✏️ Update Booking
-  static Future<Map<String, dynamic>> updateBooking(
-    Booking booking,
-  ) async {
-    final response = await http.post(
-      Uri.parse("$baseUrl/update_booking.php"),
-      headers: headers,
-      body: jsonEncode(booking.toJson()),
-    );
+static Future<Map<String, dynamic>> updateBooking(
+  Booking booking, {
+  String? carModel,
+  String? carPlate,
+}) async {
+  final body = booking.toJson();
+  if (carModel != null) body['car_model'] = carModel;
+  if (carPlate != null) body['car_plate'] = carPlate;
 
-    return jsonDecode(response.body);
-  }
+  final response = await http.post(
+    Uri.parse("$baseUrl/update_booking.php"),
+    headers: headers,
+    body: jsonEncode(body),
+  );
+
+  return jsonDecode(response.body);
+}
+
+
 
   /// ❌ Cancel Booking
   static Future<Map<String, dynamic>> cancelBooking(
@@ -146,6 +159,7 @@ class ApiService {
 
   return jsonDecode(response.body);
 }
+
 
 
   /* ===================== WALLET ===================== */

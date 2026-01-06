@@ -1,4 +1,3 @@
-// booking_form.dart
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../styles/app_styles.dart';
@@ -36,6 +35,8 @@ class _BookingFormState extends State<BookingForm> {
   late TextEditingController notesController;
   late TextEditingController dateController;
   late TextEditingController timeController;
+  late TextEditingController carModelController;
+  late TextEditingController carPlateController;
 
   @override
   void initState() {
@@ -48,6 +49,10 @@ class _BookingFormState extends State<BookingForm> {
         TextEditingController(text: widget.existingBooking?.bookingDate ?? '');
     timeController =
         TextEditingController(text: widget.existingBooking?.bookingTime ?? '');
+    carModelController =
+        TextEditingController(text: widget.existingBooking?.carModel ?? '');
+    carPlateController =
+        TextEditingController(text: widget.existingBooking?.carPlate ?? '');
   }
 
   @override
@@ -56,6 +61,8 @@ class _BookingFormState extends State<BookingForm> {
     notesController.dispose();
     dateController.dispose();
     timeController.dispose();
+    carModelController.dispose();
+    carPlateController.dispose();
     super.dispose();
   }
 
@@ -79,10 +86,10 @@ class _BookingFormState extends State<BookingForm> {
     if (timeController.text.isNotEmpty) {
       try {
         final timeParts = timeController.text.split(':');
-        if (timeParts.length == 2) {
+        if (timeParts.length >= 2) {
           initialTime = TimeOfDay(
             hour: int.parse(timeParts[0]),
-            minute: int.parse(timeParts[1].split(' ')[0]),
+            minute: int.parse(timeParts[1]),
           );
         }
       } catch (_) {}
@@ -92,7 +99,9 @@ class _BookingFormState extends State<BookingForm> {
       initialTime: initialTime,
     );
     if (picked != null) {
-      timeController.text = picked.format(context);
+      final now = DateTime.now();
+      final dt = DateTime(now.year, now.month, now.day, picked.hour, picked.minute);
+      timeController.text = DateFormat('HH:mm:ss').format(dt);
     }
   }
 
@@ -100,8 +109,9 @@ class _BookingFormState extends State<BookingForm> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-            widget.isUpdate ? "Update Booking" : "Book ${widget.service?.name ?? ''}"),
+        title: Text(widget.isUpdate
+            ? "Update Booking"
+            : "Book ${widget.service?.name ?? ''}"),
       ),
       body: Padding(
         padding: const EdgeInsets.all(AppStyles.standardPadding),
@@ -142,12 +152,27 @@ class _BookingFormState extends State<BookingForm> {
                   onTap: _pickTime,
                   validator: (v) => v!.isEmpty ? "Pick a time" : null,
                 ),
+                const SizedBox(height: AppStyles.smallSpacing),
+                TextFormField(
+                  controller: carModelController,
+                  decoration: const InputDecoration(labelText: "Car Model"),
+                  validator: (v) =>
+                      v == null || v.isEmpty ? "Enter car model" : null,
+                ),
+                const SizedBox(height: AppStyles.smallSpacing),
+                TextFormField(
+                  controller: carPlateController,
+                  decoration: const InputDecoration(labelText: "Car Plate Number"),
+                  validator: (v) =>
+                      v == null || v.isEmpty ? "Enter plate number" : null,
+                ),
                 const SizedBox(height: AppStyles.largeSpacing),
                 ElevatedButton(
                   style: AppStyles.darkButtonStyle,
                   onPressed: () async {
                     if (_formKey.currentState!.validate()) {
                       if (widget.isUpdate && widget.existingBooking != null) {
+                        // Update existing booking
                         final updatedBooking = Booking(
                           id: widget.existingBooking!.id,
                           customerEmail: widget.customerEmail,
@@ -156,24 +181,27 @@ class _BookingFormState extends State<BookingForm> {
                           notes: notesController.text,
                           bookingDate: dateController.text,
                           bookingTime: timeController.text,
+                          carModel: carModelController.text,
+                          carPlate: carPlateController.text,
                         );
 
                         try {
                           final result =
                               await ApiService.updateBooking(updatedBooking);
+
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                                 content: Text(
-                                    result['message'] ??
-                                        'Booking updated successfully')),
+                                    result['message'] ?? 'Booking updated successfully')),
                           );
-                          Navigator.pop(context, true); // signal update
+                          Navigator.pop(context, true);
                         } catch (e) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text("Update failed: $e")),
                           );
                         }
                       } else if (widget.service != null) {
+                        // Create new booking
                         final newBooking = Booking(
                           customerEmail: widget.customerEmail,
                           serviceName: widget.service!.name,
@@ -181,16 +209,21 @@ class _BookingFormState extends State<BookingForm> {
                           notes: notesController.text,
                           bookingDate: dateController.text,
                           bookingTime: timeController.text,
+                          carModel: carModelController.text,
+                          carPlate: carPlateController.text,
                         );
 
                         try {
-                          final result =
-                              await ApiService.createBooking(newBooking);
+                          final result = await ApiService.createBookingWithCar(
+                            newBooking,
+                            carModelController.text,
+                            carPlateController.text,
+                          );
 
                           if (result['status'] == true) {
-                            // Get customer ID from shared preferences
-                            final customerId = await SharedPreferencesService.getCustomerId() ?? 0;
-                            
+                            final customerId =
+                                await SharedPreferencesService.getCustomerId() ?? 0;
+
                             Navigator.pop(context, true);
                             Navigator.push(
                               context,

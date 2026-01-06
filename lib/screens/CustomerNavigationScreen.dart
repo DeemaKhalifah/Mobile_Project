@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import '../styles/app_styles.dart';
-import '../models/customerwallet.dart';
 import '../services/shared_preferences_service.dart';
 import 'Customer_main_screen.dart';
 import 'CurrentServicesScreen.dart';
@@ -25,133 +24,36 @@ class CustomerNavigationScreen extends StatefulWidget {
 
 class _CustomerNavigationScreenState extends State<CustomerNavigationScreen> {
   int _currentIndex = 0;
-  CustomerWallet? wallet;
-  bool isLoadingWallet = true;
+  bool _isLoadingWallet = true;
 
   @override
   void initState() {
     super.initState();
-    _loadWallet();
+    _loadWallet(); // Preload wallet to show loading indicator
   }
 
+  // This function ensures wallet is preloaded so balance is up-to-date
   Future<void> _loadWallet() async {
+    setState(() {
+      _isLoadingWallet = true;
+    });
+
     try {
-      final loadedWallet = await ApiService.getWallet(widget.customerEmail);
-      setState(() {
-        wallet = loadedWallet;
-        isLoadingWallet = false;
-      });
+      await ApiService.getWallet(widget.customerEmail); // Fetch wallet but we don't need to store it
     } catch (e) {
-      setState(() {
-        isLoadingWallet = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Failed to load wallet: $e")),
-      );
+      // Ignore errors here, screens will handle it individually
     }
+
+    setState(() {
+      _isLoadingWallet = false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    // Show loader if wallet is not yet loaded
-    if (isLoadingWallet) {
+    if (_isLoadingWallet) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
-      );
-    }
-
-    // Show error message if wallet failed to load
-    if (wallet == null) {
-      return Scaffold(
-        appBar: AppBar(
-          backgroundColor: AppStyles.primaryVeryDarkColor,
-          automaticallyImplyLeading: false,
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.logout),
-              tooltip: 'Logout',
-              onPressed: () async {
-                final confirmed = await showDialog<bool>(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: const Text('Logout'),
-                    content: const Text('Are you sure you want to logout?'),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context, false),
-                        child: const Text('Cancel'),
-                      ),
-                      TextButton(
-                        onPressed: () => Navigator.pop(context, true),
-                        child: const Text('Logout'),
-                      ),
-                    ],
-                  ),
-                );
-
-                if (confirmed == true) {
-                  await SharedPreferencesService.clearAll();
-                  if (mounted) {
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const WelcomeScreen(),
-                      ),
-                      (route) => false,
-                    );
-                  }
-                }
-              },
-            ),
-          ],
-        ),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error_outline, size: 64, color: Colors.red),
-              const SizedBox(height: 16),
-              const Text("Failed to load wallet"),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    isLoadingWallet = true;
-                  });
-                  _loadWallet();
-                },
-                child: const Text("Retry"),
-              ),
-            ],
-          ),
-        ),
-        bottomNavigationBar: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: (index) {
-            setState(() => _currentIndex = index);
-            // Reload wallet when switching to wallet tab
-            if (index == 2 && wallet != null) {
-              _loadWallet();
-            }
-          },
-          backgroundColor: AppStyles.primaryVeryDarkColor,
-          selectedItemColor: AppStyles.whiteColor,
-          unselectedItemColor: AppStyles.white70,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home),
-              label: 'Services',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.list_alt),
-              label: 'My Bookings',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.account_balance_wallet),
-              label: 'Wallet',
-            ),
-          ],
-        ),
       );
     }
 
@@ -164,7 +66,6 @@ class _CustomerNavigationScreenState extends State<CustomerNavigationScreen> {
             icon: const Icon(Icons.logout),
             tooltip: 'Logout',
             onPressed: () async {
-              // Show confirmation dialog
               final confirmed = await showDialog<bool>(
                 context: context,
                 builder: (context) => AlertDialog(
@@ -184,16 +85,11 @@ class _CustomerNavigationScreenState extends State<CustomerNavigationScreen> {
               );
 
               if (confirmed == true) {
-                // Clear shared preferences
                 await SharedPreferencesService.clearAll();
-                
-                // Navigate to welcome screen
                 if (mounted) {
                   Navigator.pushAndRemoveUntil(
                     context,
-                    MaterialPageRoute(
-                      builder: (_) => const WelcomeScreen(),
-                    ),
+                    MaterialPageRoute(builder: (_) => const WelcomeScreen()),
                     (route) => false,
                   );
                 }
@@ -205,20 +101,19 @@ class _CustomerNavigationScreenState extends State<CustomerNavigationScreen> {
       body: IndexedStack(
         index: _currentIndex,
         children: [
-          // Services: pass customerEmail and wallet
+          // Services screen
           CustomerMainScreen(
             customerEmail: widget.customerEmail,
-            wallet: wallet,
           ),
 
-          // My Bookings
+          // My Bookings screen
           CurrentServicesScreen(
             customerEmail: widget.customerEmail,
           ),
 
-          // Wallet Summary (wallet is guaranteed to be non-null at this point)
+          // Wallet Summary screen
           WalletSummaryScreen(
-            wallet: wallet!,
+            customerEmail: widget.customerEmail,
           ),
         ],
       ),
@@ -226,10 +121,8 @@ class _CustomerNavigationScreenState extends State<CustomerNavigationScreen> {
         currentIndex: _currentIndex,
         onTap: (index) {
           setState(() => _currentIndex = index);
-          // Reload wallet when switching to wallet tab to ensure latest balance
-          if (index == 2 && wallet != null) {
-            _loadWallet();
-          }
+          // Reload wallet when switching to wallet tab
+          if (index == 2) _loadWallet();
         },
         backgroundColor: AppStyles.primaryVeryDarkColor,
         selectedItemColor: AppStyles.whiteColor,

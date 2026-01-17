@@ -41,18 +41,24 @@ class _BookingFormState extends State<BookingForm> {
   @override
   void initState() {
     super.initState();
-    locationController =
-        TextEditingController(text: widget.existingBooking?.location ?? '');
-    notesController =
-        TextEditingController(text: widget.existingBooking?.notes ?? '');
-    dateController =
-        TextEditingController(text: widget.existingBooking?.bookingDate ?? '');
-    timeController =
-        TextEditingController(text: widget.existingBooking?.bookingTime ?? '');
-    carModelController =
-        TextEditingController(text: widget.existingBooking?.carModel ?? '');
-    carPlateController =
-        TextEditingController(text: widget.existingBooking?.carPlate ?? '');
+    locationController = TextEditingController(
+      text: widget.existingBooking?.location ?? '',
+    );
+    notesController = TextEditingController(
+      text: widget.existingBooking?.notes ?? '',
+    );
+    dateController = TextEditingController(
+      text: widget.existingBooking?.bookingDate ?? '',
+    );
+    timeController = TextEditingController(
+      text: widget.existingBooking?.bookingTime ?? '',
+    );
+    carModelController = TextEditingController(
+      text: widget.existingBooking?.carModel ?? '',
+    );
+    carPlateController = TextEditingController(
+      text: widget.existingBooking?.carPlate ?? '',
+    );
   }
 
   @override
@@ -68,7 +74,8 @@ class _BookingFormState extends State<BookingForm> {
 
   Future<void> _pickDate() async {
     final initialDate = dateController.text.isNotEmpty
-        ? DateFormat('yyyy-MM-dd').tryParse(dateController.text) ?? DateTime.now()
+        ? DateFormat('yyyy-MM-dd').tryParse(dateController.text) ??
+              DateTime.now()
         : DateTime.now();
     final picked = await showDatePicker(
       context: context,
@@ -100,7 +107,13 @@ class _BookingFormState extends State<BookingForm> {
     );
     if (picked != null) {
       final now = DateTime.now();
-      final dt = DateTime(now.year, now.month, now.day, picked.hour, picked.minute);
+      final dt = DateTime(
+        now.year,
+        now.month,
+        now.day,
+        picked.hour,
+        picked.minute,
+      );
       timeController.text = DateFormat('HH:mm:ss').format(dt);
     }
   }
@@ -109,9 +122,11 @@ class _BookingFormState extends State<BookingForm> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.isUpdate
-            ? "Update Booking"
-            : "Book ${widget.service?.name ?? ''}"),
+        title: Text(
+          widget.isUpdate
+              ? "Update Booking"
+              : "Book ${widget.service?.name ?? ''}",
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(AppStyles.standardPadding),
@@ -162,7 +177,9 @@ class _BookingFormState extends State<BookingForm> {
                 const SizedBox(height: AppStyles.smallSpacing),
                 TextFormField(
                   controller: carPlateController,
-                  decoration: const InputDecoration(labelText: "Car Plate Number"),
+                  decoration: const InputDecoration(
+                    labelText: "Car Plate Number",
+                  ),
                   validator: (v) =>
                       v == null || v.isEmpty ? "Enter plate number" : null,
                 ),
@@ -186,13 +203,17 @@ class _BookingFormState extends State<BookingForm> {
                         );
 
                         try {
-                          final result =
-                              await ApiService.updateBooking(updatedBooking);
+                          final result = await ApiService.updateBooking(
+                            updatedBooking,
+                          );
 
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                                content: Text(
-                                    result['message'] ?? 'Booking updated successfully')),
+                              content: Text(
+                                result['message'] ??
+                                    'Booking updated successfully',
+                              ),
+                            ),
                           );
                           Navigator.pop(context, true);
                         } catch (e) {
@@ -222,7 +243,8 @@ class _BookingFormState extends State<BookingForm> {
 
                           if (result['status'] == true) {
                             final customerId =
-                                await SharedPreferencesService.getCustomerId() ?? 0;
+                                await SharedPreferencesService.getCustomerId() ??
+                                0;
 
                             Navigator.pop(context, true);
                             Navigator.push(
@@ -240,20 +262,23 @@ class _BookingFormState extends State<BookingForm> {
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                  content: Text(
-                                      result['message'] ?? 'Booking failed')),
+                                content: Text(
+                                  result['message'] ?? 'Booking failed',
+                                ),
+                              ),
                             );
                           }
                         } catch (e) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Error: $e')),
-                          );
+                          ScaffoldMessenger.of(
+                            context,
+                          ).showSnackBar(SnackBar(content: Text('Error: $e')));
                         }
                       }
                     }
                   },
                   child: Text(
-                      widget.isUpdate ? "Update Booking" : "Confirm Booking"),
+                    widget.isUpdate ? "Update Booking" : "Confirm Booking",
+                  ),
                 ),
               ],
             ),

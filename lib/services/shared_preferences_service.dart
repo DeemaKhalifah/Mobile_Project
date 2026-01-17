@@ -7,6 +7,7 @@ class SharedPreferencesService {
   static const String _keyCustomerId = 'customer_id';
   static const String _keyUserRole = 'user_role';
   static const String _keyIsLoggedIn = 'is_logged_in';
+  static const String _keyEmployeeEmail = 'employee_email';
 
   // Save customer email
   static Future<void> saveCustomerEmail(String email) async {
@@ -30,6 +31,18 @@ class SharedPreferencesService {
   static Future<int?> getCustomerId() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getInt(_keyCustomerId);
+  }
+
+  // Save employee email
+  static Future<void> saveEmployeeEmail(String email) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyEmployeeEmail, email);
+  }
+
+  // Get employee email
+  static Future<String?> getEmployeeEmail() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyEmployeeEmail);
   }
 
   // Save user role
@@ -62,5 +75,3 @@ class SharedPreferencesService {
     await prefs.clear();
   }
 }
-
-

@@ -3,10 +3,11 @@ import '../styles/app_styles.dart';
 import '../services/api_service.dart';
 import '../services/shared_preferences_service.dart';
 import 'CustomerNavigationScreen.dart';
+import 'EmployeeNavigationScreen.dart';
+import 'ManagerNavigationScreen.dart';
 
 class SignupScreen extends StatefulWidget {
   final String role;
-
   const SignupScreen({super.key, required this.role});
 
   @override
@@ -44,32 +45,29 @@ class _SignupScreenState extends State<SignupScreen> {
             children: [
               const SizedBox(height: AppStyles.smallSpacing),
 
-              /// NAME
               TextFormField(
                 decoration: AppStyles.standardInputDecoration.copyWith(
                   labelText: "Name",
                 ),
-                onSaved: (val) => name = val!,
+                onSaved: (val) => name = val!.trim(),
                 validator: (val) =>
-                    val!.isEmpty ? "Please enter your name" : null,
+                    val!.trim().isEmpty ? "Please enter your name" : null,
               ),
 
               const SizedBox(height: AppStyles.mediumSpacing),
 
-              /// EMAIL
               TextFormField(
                 decoration: AppStyles.standardInputDecoration.copyWith(
                   labelText: "Email",
                 ),
                 keyboardType: TextInputType.emailAddress,
-                onSaved: (val) => email = val!,
+                onSaved: (val) => email = val!.trim(),
                 validator: (val) =>
-                    val!.isEmpty ? "Please enter your email" : null,
+                    val!.trim().isEmpty ? "Please enter your email" : null,
               ),
 
               const SizedBox(height: AppStyles.mediumSpacing),
 
-              /// PASSWORD
               TextFormField(
                 decoration: AppStyles.standardInputDecoration.copyWith(
                   labelText: "Password",
@@ -82,18 +80,16 @@ class _SignupScreenState extends State<SignupScreen> {
 
               const SizedBox(height: AppStyles.mediumSpacing),
 
-              /// PHONE
               TextFormField(
                 decoration: AppStyles.standardInputDecoration.copyWith(
                   labelText: "Phone",
                 ),
                 keyboardType: TextInputType.phone,
-                onSaved: (val) => phone = val!,
+                onSaved: (val) => phone = (val ?? '').trim(),
               ),
 
               const SizedBox(height: AppStyles.largeSpacing),
 
-              /// ROLE BOX
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: AppStyles.roleBoxDecoration,
@@ -105,7 +101,6 @@ class _SignupScreenState extends State<SignupScreen> {
 
               const SizedBox(height: AppStyles.xlargeSpacing),
 
-              /// CREATE ACCOUNT BUTTON
               ElevatedButton(
                 style: AppStyles.accentButtonStyle,
                 child: const Text(
@@ -114,67 +109,92 @@ class _SignupScreenState extends State<SignupScreen> {
                 ),
                 onPressed: () async {
                   if (!_formKey.currentState!.validate()) return;
-
                   _formKey.currentState!.save();
 
-                  final res = await ApiService.signup(
-                    name,
-                    email,
-                    password,
-                    role,
-                    phone,
-                  );
+                  try {
+                    final res = await ApiService.signup(
+                      name,
+                      email,
+                      password,
+                      role,
+                      phone,
+                    );
 
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(res['message'])),
-                  );
-
-                  if (!res['status']) return;
-
-                  /// SAVE BASIC USER DATA
-                  await SharedPreferencesService.saveCustomerEmail(email);
-                  await SharedPreferencesService.saveUserRole(role);
-                  await SharedPreferencesService.setLoggedIn(true);
-
-                  /// GET CUSTOMER ID SAFELY
-                  int? customerId;
-                  if (res['customerId'] != null) {
-                    customerId = res['customerId'] is int
-                        ? res['customerId']
-                        : int.tryParse(res['customerId'].toString());
-
-                    if (customerId != null) {
-                      await SharedPreferencesService.saveCustomerId(customerId);
-                    }
-                  }
-
-                  /// CREATE WALLET AUTOMATICALLY (balance = 0)
-                  /// card_number, card_holder, expiry_date, cvv => NULL
-                  if (role.toLowerCase() == 'customer') {
-                    try {
-                      await ApiService.createWallet(
-                        email,
-                        userId: customerId,
-                      );
-                    } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content:
-                              Text("Warning: Wallet creation failed"),
-                        ),
-                      );
-                    }
-
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => CustomerNavigationScreen(
-                          customerEmail: email,
-                        ),
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(res['message'] ?? "Signup result"),
                       ),
                     );
-                  } else {
-                    Navigator.pop(context);
+
+                    if (res['status'] != true) return;
+
+                    final serverRole = (res['role'] ?? role)
+                        .toString()
+                        .toLowerCase();
+
+                    await SharedPreferencesService.saveUserRole(serverRole);
+                    await SharedPreferencesService.setLoggedIn(true);
+                    await SharedPreferencesService.saveCustomerEmail(email);
+
+                    if (serverRole == 'employee') {
+                      await SharedPreferencesService.saveEmployeeEmail(email);
+                    }
+
+                    int? customerId;
+                    if (res['customerId'] != null) {
+                      customerId = res['customerId'] is int
+                          ? res['customerId']
+                          : int.tryParse(res['customerId'].toString());
+                      if (customerId != null) {
+                        await SharedPreferencesService.saveCustomerId(
+                          customerId,
+                        );
+                      }
+                    }
+
+                    if (serverRole == 'customer') {
+                      // Wallet
+                      try {
+                        await ApiService.createWallet(
+                          email,
+                          userId: customerId,
+                        );
+                      } catch (_) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Warning: Wallet creation failed"),
+                          ),
+                        );
+                      }
+
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              CustomerNavigationScreen(customerEmail: email),
+                        ),
+                      );
+                    } else if (serverRole == 'employee') {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const EmployeeNavigationScreen(),
+                        ),
+                      );
+                    } else if (serverRole == 'manager') {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const ManagerNavigationScreen(),
+                        ),
+                      );
+                    } else {
+                      Navigator.pop(context);
+                    }
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text("Signup failed: $e")),
+                    );
                   }
                 },
               ),

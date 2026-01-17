@@ -34,25 +34,79 @@ class _CustomerMainScreenState extends State<CustomerMainScreen> {
 
   Future<void> _loadCustomerEmail() async {
     final email = await SharedPreferencesService.getCustomerEmail();
+    if (!mounted) return;
     setState(() {
       _customerEmail = email;
       _isLoadingEmail = false;
     });
   }
 
+  bool _isHttp(String s) => s.startsWith('http://') || s.startsWith('https://');
+
+  String _serverImageUrl(String filename) {
+    final base = ApiService.baseUrl.replaceAll(RegExp(r'\/+$'), '');
+    return "$base/uploads/$filename";
+  }
+
+  Widget _imageFallback() {
+    return Container(
+      height: AppStyles.imageHeight,
+      color: AppStyles.greyColor,
+      child: const Center(
+        child: Icon(
+          Icons.car_repair,
+          size: AppStyles.iconSize,
+          color: AppStyles.whiteColor,
+        ),
+      ),
+    );
+  }
+
+  Widget _serviceImage(String rawImage) {
+    final img = rawImage.trim();
+
+    if (img.isEmpty) return _imageFallback();
+
+    // 1) full URL
+    if (_isHttp(img)) {
+      return Image.network(
+        img,
+        width: double.infinity,
+        height: AppStyles.imageHeight,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => _imageFallback(),
+      );
+    }
+
+    // 2) filename -> try server uploads first
+    final serverUrl = _serverImageUrl(img);
+    return Image.network(
+      serverUrl,
+      width: double.infinity,
+      height: AppStyles.imageHeight,
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) {
+        // 3) fallback to asset (for bundled images)
+        return Image.asset(
+          "assets/images/$img",
+          width: double.infinity,
+          height: AppStyles.imageHeight,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => _imageFallback(),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoadingEmail) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     if (_customerEmail == null || _customerEmail!.isEmpty) {
       return const Scaffold(
-        body: Center(
-          child: Text("Customer information not available"),
-        ),
+        body: Center(child: Text("Customer information not available")),
       );
     }
 
@@ -66,11 +120,23 @@ class _CustomerMainScreenState extends State<CustomerMainScreen> {
         future: servicesFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator(color: AppStyles.whiteColor));
+            return const Center(
+              child: CircularProgressIndicator(color: AppStyles.whiteColor),
+            );
           } else if (snapshot.hasError) {
-            return Center(child: Text("Error: ${snapshot.error}", style: AppStyles.errorTextStyle));
+            return Center(
+              child: Text(
+                "Error: ${snapshot.error}",
+                style: AppStyles.errorTextStyle,
+              ),
+            );
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text("No services available", style: AppStyles.errorTextStyle));
+            return const Center(
+              child: Text(
+                "No services available",
+                style: AppStyles.errorTextStyle,
+              ),
+            );
           } else {
             final services = snapshot.data!;
             return ListView.builder(
@@ -78,7 +144,6 @@ class _CustomerMainScreenState extends State<CustomerMainScreen> {
               itemCount: services.length,
               itemBuilder: (context, index) {
                 final service = services[index];
-                String imageName = service.image.trim();
 
                 return Card(
                   margin: const EdgeInsets.symmetric(vertical: 8),
@@ -88,20 +153,7 @@ class _CustomerMainScreenState extends State<CustomerMainScreen> {
                     children: [
                       ClipRRect(
                         borderRadius: AppStyles.cardTopBorderRadius,
-                        child: Image.asset(
-                          "assets/images/$imageName",
-                          width: double.infinity,
-                          height: AppStyles.imageHeight,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              height: AppStyles.imageHeight,
-                              color: AppStyles.greyColor,
-                              child: const Center(
-                                  child: Icon(Icons.car_repair, size: AppStyles.iconSize, color: AppStyles.whiteColor)),
-                            );
-                          },
-                        ),
+                        child: _serviceImage(service.image),
                       ),
                       Padding(
                         padding: const EdgeInsets.all(12.0),
@@ -137,7 +189,7 @@ class _CustomerMainScreenState extends State<CustomerMainScreen> {
                           },
                           child: const Text("View Details"),
                         ),
-                      )
+                      ),
                     ],
                   ),
                 );

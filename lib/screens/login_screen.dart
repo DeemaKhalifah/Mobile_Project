@@ -6,6 +6,8 @@ import '../services/api_service.dart';
 import '../services/shared_preferences_service.dart';
 import 'signup_screen.dart';
 import 'CustomerNavigationScreen.dart';
+import 'EmployeeNavigationScreen.dart';
+import 'ManagerNavigationScreen.dart';
 
 class LoginScreen extends StatefulWidget {
   final String role;
@@ -18,6 +20,12 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   String email = "", password = "";
+
+  int? _toInt(dynamic v) {
+    if (v == null) return null;
+    if (v is int) return v;
+    return int.tryParse(v.toString());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,15 +43,18 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               TextFormField(
                 decoration: const InputDecoration(labelText: "Email"),
-                onSaved: (val) => email = val!,
-                validator: (val) => val!.isEmpty ? "Enter email" : null,
+                onSaved: (val) => email = val!.trim(),
+                validator: (val) =>
+                    (val == null || val.trim().isEmpty) ? "Enter email" : null,
               ),
               const SizedBox(height: AppStyles.mediumSpacing),
               TextFormField(
                 decoration: const InputDecoration(labelText: "Password"),
                 obscureText: true,
-                onSaved: (val) => password = val!,
-                validator: (val) => val!.isEmpty ? "Enter password" : null,
+                onSaved: (val) => password = val!.trim(),
+                validator: (val) => (val == null || val.trim().isEmpty)
+                    ? "Enter password"
+                    : null,
               ),
               const SizedBox(height: AppStyles.smallSpacing),
               Align(
@@ -62,55 +73,75 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: AppStyles.primaryButtonStyle,
                   child: const Text("Login"),
                   onPressed: () async {
-                    if (_formKey.currentState!.validate()) {
-                      _formKey.currentState!.save();
+                    if (!_formKey.currentState!.validate()) return;
+                    _formKey.currentState!.save();
 
-                      try {
-                        final res = await ApiService.login(email, password);
+                    try {
+                      final res = await ApiService.login(email, password);
 
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(res['message'])),
-                        );
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(res['message'] ?? "Done")),
+                      );
 
-                        if (res['status'] == true) {
-                          // Save user data to shared preferences
-                          await SharedPreferencesService.saveCustomerEmail(email);
-                          await SharedPreferencesService.saveUserRole(res['role'] ?? '');
-                          await SharedPreferencesService.setLoggedIn(true);
-                          
-                          // Save customer ID if available from login response
-                          if (res['customerId'] != null) {
-                            await SharedPreferencesService.saveCustomerId(res['customerId']);
-                          } else if (res['role'] == 'customer') {
-                            // Try to get customer ID from wallet if not in login response
-                            try {
-                              final wallet = await ApiService.getWallet(email);
-                              if (wallet.userId != null) {
-                                await SharedPreferencesService.saveCustomerId(wallet.userId!);
-                              }
-                            } catch (e) {
-                              // Failed to load wallet, continue without customer ID
-                            }
-                          }
+                      if (res['status'] != true) return;
 
-                          if (res['role'] == 'customer') {
-                            // Navigate to CustomerNavigationScreen
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => CustomerNavigationScreen(
-                                  customerEmail: email,
-                                ),
-                              ),
-                            );
-                          }
-                          // Add similar handling for other roles if needed
-                        }
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text("Login failed: $e")),
+                      final role = (res['role'] ?? '').toString().toLowerCase();
+
+                      // Save common data
+                      await SharedPreferencesService.saveUserRole(role);
+                      await SharedPreferencesService.setLoggedIn(true);
+
+                      // Save email based on role (keep your existing keys)
+                      if (role == 'employee') {
+                        await SharedPreferencesService.saveEmployeeEmail(email);
+                      } else {
+                        await SharedPreferencesService.saveCustomerEmail(email);
+                      }
+
+                      // Save customerId if present (safe parse)
+                      final userObj = res['user'];
+                      final int? customerId = (userObj is Map<String, dynamic>)
+                          ? _toInt(userObj['id'])
+                          : null;
+
+                      if (role == 'customer' && customerId != null) {
+                        await SharedPreferencesService.saveCustomerId(
+                          customerId,
                         );
                       }
+
+                      // Navigate based on role
+                      if (role == 'customer') {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                CustomerNavigationScreen(customerEmail: email),
+                          ),
+                        );
+                      } else if (role == 'employee') {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const EmployeeNavigationScreen(),
+                          ),
+                        );
+                      } else if (role == 'manager') {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const ManagerNavigationScreen(),
+                          ),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text("Unknown role: $role")),
+                        );
+                      }
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text("Login failed: $e")),
+                      );
                     }
                   },
                 ),

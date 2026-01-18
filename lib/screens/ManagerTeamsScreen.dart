@@ -32,6 +32,7 @@ class _ManagerTeamsScreenState extends State<ManagerTeamsScreen> {
   }
 
   Future<void> _load() async {
+    if (!mounted) return;
     setState(() {
       _loading = true;
       _error = '';
@@ -39,11 +40,14 @@ class _ManagerTeamsScreenState extends State<ManagerTeamsScreen> {
 
     try {
       final data = await ApiService.managerGetTeams();
+      if (!mounted) return;
       setState(() => _teams = data);
     } catch (e) {
+      if (!mounted) return;
       setState(() => _error = e.toString());
     } finally {
-      if (mounted) setState(() => _loading = false);
+      if (!mounted) return;
+      setState(() => _loading = false);
     }
   }
 
@@ -66,65 +70,71 @@ class _ManagerTeamsScreenState extends State<ManagerTeamsScreen> {
 
     await showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (_) => StatefulBuilder(
         builder: (dialogCtx, setDialogState) => AlertDialog(
           title: const Text("Add Team"),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: nameCtrl,
-                  decoration: const InputDecoration(
-                    labelText: "Team Name",
-                    border: OutlineInputBorder(),
-                  ),
+          scrollable: true, // ✅ مهم عشان الكيبورد وما يصير overflow
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameCtrl,
+                decoration: const InputDecoration(
+                  labelText: "Team Name",
+                  border: OutlineInputBorder(),
                 ),
-                const SizedBox(height: 12),
+              ),
+              const SizedBox(height: 12),
 
-                DropdownButtonFormField<int>(
-                  initialValue: selectedEmpId,
-                  items: available
-                      .map((e) {
-                        final id =
-                            int.tryParse((e['id'] ?? '').toString()) ?? 0;
-                        final name = (e['name'] ?? '').toString();
-                        final email = (e['email'] ?? '').toString();
-                        if (id <= 0) return null;
-                        return DropdownMenuItem<int>(
-                          value: id,
-                          child: Text("$name ($email)"),
-                        );
-                      })
-                      .whereType<DropdownMenuItem<int>>()
-                      .toList(),
-                  onChanged: available.isEmpty
-                      ? null
-                      : (v) => setDialogState(() => selectedEmpId = v),
-                  decoration: const InputDecoration(
-                    labelText: "Leader Employee",
-                    border: OutlineInputBorder(),
-                  ),
+              // ✅ Dropdown fix: isExpanded + ellipsis
+              DropdownButtonFormField<int>(
+                value: selectedEmpId,
+                isExpanded: true,
+                items: available
+                    .map((e) {
+                      final id = int.tryParse((e['id'] ?? '').toString()) ?? 0;
+                      final name = (e['name'] ?? '').toString();
+                      final email = (e['email'] ?? '').toString();
+                      if (id <= 0) return null;
+
+                      return DropdownMenuItem<int>(
+                        value: id,
+                        child: Text(
+                          "$name ($email)",
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      );
+                    })
+                    .whereType<DropdownMenuItem<int>>()
+                    .toList(),
+                onChanged: available.isEmpty
+                    ? null
+                    : (v) => setDialogState(() => selectedEmpId = v),
+                decoration: const InputDecoration(
+                  labelText: "Leader Employee",
+                  border: OutlineInputBorder(),
                 ),
+              ),
 
-                const SizedBox(height: 12),
-                TextField(
-                  controller: carPlateCtrl,
-                  decoration: const InputDecoration(
-                    labelText: "Car Number Plate",
-                    border: OutlineInputBorder(),
-                  ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: carPlateCtrl,
+                decoration: const InputDecoration(
+                  labelText: "Car Number Plate",
+                  border: OutlineInputBorder(),
                 ),
+              ),
 
-                if (available.isEmpty) ...[
-                  const SizedBox(height: 8),
-                  const Text(
-                    "No available employees (all employees already assigned).",
-                    style: TextStyle(fontSize: 12),
-                  ),
-                ],
+              if (available.isEmpty) ...[
+                const SizedBox(height: 10),
+                const Text(
+                  "No available employees (all employees already assigned).",
+                  style: TextStyle(fontSize: 12),
+                ),
               ],
-            ),
+            ],
           ),
           actions: [
             TextButton(
@@ -193,13 +203,10 @@ class _ManagerTeamsScreenState extends State<ManagerTeamsScreen> {
       MaterialPageRoute(builder: (_) => ManagerTeamDetailsScreen(team: team)),
     );
 
-    if (refreshed == true) {
-      _load();
-    }
+    if (refreshed == true) _load();
   }
 
   Future<void> _logout() async {
-    // 1) Show confirm dialog
     final confirm = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
@@ -220,9 +227,8 @@ class _ManagerTeamsScreenState extends State<ManagerTeamsScreen> {
       ),
     );
 
-    if (confirm != true) return; // Cancel
+    if (confirm != true) return;
 
-    // 2) Do logout
     await SharedPreferencesService.clearAll();
     if (!mounted) return;
     Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
@@ -235,10 +241,8 @@ class _ManagerTeamsScreenState extends State<ManagerTeamsScreen> {
       appBar: AppBar(
         backgroundColor: AppStyles.primaryColor,
         title: const Text("Manager - Teams"),
-
         automaticallyImplyLeading: false,
         leading: const SizedBox.shrink(),
-
         actions: [
           IconButton(onPressed: _logout, icon: const Icon(Icons.logout)),
         ],
@@ -273,6 +277,8 @@ class _ManagerTeamsScreenState extends State<ManagerTeamsScreen> {
                     title: Text(
                       teamName.isEmpty ? "Team" : teamName,
                       style: const TextStyle(fontWeight: FontWeight.bold),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -281,9 +287,13 @@ class _ManagerTeamsScreenState extends State<ManagerTeamsScreen> {
                         Text(
                           "Leader: ${leaderName.isEmpty ? 'Not assigned' : leaderName}"
                           "${leaderEmail.isEmpty ? '' : ' ($leaderEmail)'}",
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         Text(
                           "Car Number: ${carPlate.isEmpty ? '-' : carPlate}",
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),

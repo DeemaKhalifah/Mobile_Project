@@ -40,6 +40,7 @@ class _ManagerTeamDetailsScreenState extends State<ManagerTeamDetailsScreen> {
   Future<void> _loadAll() async {
     final teamId = _teamId();
     if (teamId == 0) {
+      if (!mounted) return;
       setState(() {
         _loading = false;
         _error = "Invalid team id";
@@ -47,6 +48,7 @@ class _ManagerTeamDetailsScreenState extends State<ManagerTeamDetailsScreen> {
       return;
     }
 
+    if (!mounted) return;
     setState(() {
       _loading = true;
       _error = '';
@@ -56,6 +58,7 @@ class _ManagerTeamDetailsScreenState extends State<ManagerTeamDetailsScreen> {
       final members = await ApiService.managerGetTeamMembers(teamId);
       final available = await ApiService.managerGetAvailableEmployees();
 
+      if (!mounted) return;
       setState(() {
         _members = members;
         _available = available;
@@ -66,9 +69,11 @@ class _ManagerTeamDetailsScreenState extends State<ManagerTeamDetailsScreen> {
         }
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() => _error = e.toString());
     } finally {
-      if (mounted) setState(() => _loading = false);
+      if (!mounted) return;
+      setState(() => _loading = false);
     }
   }
 
@@ -85,10 +90,13 @@ class _ManagerTeamDetailsScreenState extends State<ManagerTeamDetailsScreen> {
       return;
     }
 
+    if (!mounted) return;
     setState(() => _saving = true);
+
     try {
       final res = await ApiService.managerAddTeamMember(teamId, empId);
 
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -101,6 +109,7 @@ class _ManagerTeamDetailsScreenState extends State<ManagerTeamDetailsScreen> {
       await _loadAll();
       if (mounted) setState(() => _selectedEmployeeId = null);
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text("Failed: $e")));
@@ -110,10 +119,13 @@ class _ManagerTeamDetailsScreenState extends State<ManagerTeamDetailsScreen> {
   }
 
   Future<void> _removeMember(int teamMemberId) async {
+    if (!mounted) return;
     setState(() => _saving = true);
+
     try {
       final res = await ApiService.managerRemoveTeamMember(teamMemberId);
 
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -125,6 +137,7 @@ class _ManagerTeamDetailsScreenState extends State<ManagerTeamDetailsScreen> {
       _changed = true;
       await _loadAll();
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text("Failed: $e")));
@@ -139,6 +152,7 @@ class _ManagerTeamDetailsScreenState extends State<ManagerTeamDetailsScreen> {
 
     final ok = await showDialog<bool>(
       context: context,
+      barrierDismissible: false,
       builder: (_) => AlertDialog(
         title: const Text("Delete Team"),
         content: const Text(
@@ -160,7 +174,9 @@ class _ManagerTeamDetailsScreenState extends State<ManagerTeamDetailsScreen> {
 
     if (ok != true) return;
 
+    if (!mounted) return;
     setState(() => _saving = true);
+
     try {
       final res = await ApiService.managerRemoveTeam(teamId);
 
@@ -175,8 +191,7 @@ class _ManagerTeamDetailsScreenState extends State<ManagerTeamDetailsScreen> {
         ),
       );
 
-      // go back & refresh teams screen
-      Navigator.pop(context, true);
+      Navigator.pop(context, true); // رجّع واعمل refresh
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(
@@ -219,9 +234,15 @@ class _ManagerTeamDetailsScreenState extends State<ManagerTeamDetailsScreen> {
                         Text(
                           teamName.isEmpty ? "Team" : teamName,
                           style: AppStyles.titleStyle,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 8),
-                        Text("Car Plate: $carPlate"),
+                        Text(
+                          "Car Plate: ${carPlate.isEmpty ? '-' : carPlate}",
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                         const SizedBox(height: 16),
 
                         Row(
@@ -247,8 +268,16 @@ class _ManagerTeamDetailsScreenState extends State<ManagerTeamDetailsScreen> {
                             return Card(
                               shape: AppStyles.cardShape,
                               child: ListTile(
-                                title: Text(name.isEmpty ? "Employee" : name),
-                                subtitle: Text(email),
+                                title: Text(
+                                  name.isEmpty ? "Employee" : name,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                subtitle: Text(
+                                  email,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                                 trailing: IconButton(
                                   icon: const Icon(Icons.remove_circle),
                                   onPressed: (_saving || tmId == 0)
@@ -260,15 +289,16 @@ class _ManagerTeamDetailsScreenState extends State<ManagerTeamDetailsScreen> {
                           }),
 
                         const SizedBox(height: 20),
-
                         const Text(
                           "Add Employee",
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 8),
 
+                        // ✅ Dropdown fix
                         DropdownButtonFormField<int>(
-                          initialValue: _selectedEmployeeId,
+                          value: _selectedEmployeeId,
+                          isExpanded: true,
                           items: _available
                               .where((e) => (_toInt(e['id']) ?? 0) > 0)
                               .map((e) {
@@ -277,7 +307,11 @@ class _ManagerTeamDetailsScreenState extends State<ManagerTeamDetailsScreen> {
                                 final email = _safe(e['email']);
                                 return DropdownMenuItem<int>(
                                   value: id,
-                                  child: Text("$name  ($email)"),
+                                  child: Text(
+                                    "$name ($email)",
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 );
                               })
                               .toList(),
@@ -286,7 +320,7 @@ class _ManagerTeamDetailsScreenState extends State<ManagerTeamDetailsScreen> {
                               : (v) => setState(() => _selectedEmployeeId = v),
                           decoration: const InputDecoration(
                             border: OutlineInputBorder(),
-                            hintText: "Select employee",
+                            labelText: "Select employee",
                           ),
                         ),
 
@@ -337,7 +371,8 @@ class _ManagerTeamDetailsScreenState extends State<ManagerTeamDetailsScreen> {
                             ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.red,
-                              disabledBackgroundColor: Colors.red.shade200,
+                              disabledBackgroundColor:
+                                  Colors.redAccent.shade100,
                               elevation: 6,
                               padding: const EdgeInsets.symmetric(vertical: 14),
                               shape: RoundedRectangleBorder(
@@ -346,7 +381,6 @@ class _ManagerTeamDetailsScreenState extends State<ManagerTeamDetailsScreen> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 6),
                       ],
                     ),
                   ),

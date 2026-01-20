@@ -7,8 +7,11 @@ class Booking {
   String bookingDate;
   String bookingTime;
   int? carId;
-  String? carModel;  // new
-  String? carPlate;  // new
+  String? carModel;
+  String? carPlate;
+
+  // ✅ NEW
+  String status;
 
   Booking({
     this.id,
@@ -21,6 +24,7 @@ class Booking {
     this.carId,
     this.carModel,
     this.carPlate,
+    this.status = 'pending', // default
   });
 
   Map<String, dynamic> toJson() => {
@@ -33,18 +37,24 @@ class Booking {
         'booking_time': bookingTime,
         'car_model': carModel,
         'car_plate': carPlate,
+
+        // ✅ NEW (اختياري إذا بدك تبعتيه)
+        'status': status,
       };
 
   factory Booking.fromJson(Map<String, dynamic> json) => Booking(
         id: json['id'],
-        customerEmail: json['customer_email'],
-        serviceName: json['service_name'],
-        location: json['location'],
-        notes: json['notes'] ?? '',
-        bookingDate: json['booking_date'],
-        bookingTime: json['booking_time'],
-        carId: json['car_id'],
-        carModel: json['car_model'],
-        carPlate: json['car_plate'],
+        customerEmail: (json['customer_email'] ?? '').toString(),
+        serviceName: (json['service_name'] ?? '').toString(),
+        location: (json['location'] ?? '').toString(),
+        notes: (json['notes'] ?? '').toString(),
+        bookingDate: (json['booking_date'] ?? '').toString(),
+        bookingTime: (json['booking_time'] ?? '').toString(),
+        carId: json['car_id'] == null ? null : int.tryParse(json['car_id'].toString()),
+        carModel: json['car_model']?.toString(),
+        carPlate: json['car_plate']?.toString(),
+
+        // ✅ NEW
+        status: (json['status'] ?? 'pending').toString(),
       );
 }

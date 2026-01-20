@@ -1,4 +1,3 @@
-// current_services_screen.dart
 import 'package:flutter/material.dart';
 import '../styles/app_styles.dart';
 import '../models/booking.dart';
@@ -45,15 +44,88 @@ class _CurrentServicesScreenState extends State<CurrentServicesScreen> {
         ),
       );
       return service.price > 0 ? service.price : null;
-    } catch (e) {
+    } catch (_) {
       return null;
     }
   }
 
+  // ================= STATUS HELPERS (FIXED) =================
+
+  String _normStatus(String? s) {
+    final v = (s ?? '').trim().toLowerCase();
+
+    if (v.isEmpty) return 'unknown';
+
+    // normalize all cancel variants
+    if (v == 'cancelled' || v == 'canceled' || v == 'cancel') {
+      return 'canceled';
+    }
+
+    return v;
+  }
+
+  String _statusLabel(String s) {
+    switch (_normStatus(s)) {
+      case 'pending':
+        return 'Pending';
+      case 'assigned':
+        return 'Assigned';
+      case 'completed':
+        return 'Completed';
+      case 'rejected':
+        return 'Rejected';
+      case 'canceled':
+        return 'Cancelled';
+      default:
+        return 'Unknown';
+    }
+  }
+
+  Color _statusColor(String s) {
+    switch (_normStatus(s)) {
+      case 'pending':
+        return Colors.orange;
+      case 'assigned':
+        return Colors.blue;
+      case 'completed':
+        return Colors.green;
+      case 'rejected':
+        return Colors.red;
+      case 'canceled':
+        return Colors.grey;
+      default:
+        return Colors.black54;
+    }
+  }
+
+  bool _isFinalStatus(String s) {
+    final v = _normStatus(s);
+    return v == 'completed' || v == 'rejected' || v == 'canceled';
+  }
+
+  Widget _statusChip(String? status) {
+    final s = _normStatus(status);
+    final label = _statusLabel(s);
+    final color = _statusColor(s);
+
+    return Chip(
+      label: Text(
+        label,
+        style: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      backgroundColor: color,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+    );
+  }
+
+  // ==========================================================
+
   Future<void> _cancelBooking(int id, String serviceName) async {
-    // Get service price for refund
     final servicePrice = await _getServicePrice(serviceName);
-    
+
     if (servicePrice == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Could not determine service price for refund")),
@@ -61,24 +133,43 @@ class _CurrentServicesScreenState extends State<CurrentServicesScreen> {
       return;
     }
 
-    try {
-      // Cancel the booking
-      final result = await ApiService.cancelBooking(id, widget.customerEmail, servicePrice);
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Cancel booking"),
+        content: const Text("Are you sure you want to cancel this booking?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("No"),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("Yes, cancel"),
+          ),
+        ],
+      ),
+    );
 
-      // Explicitly refund money to wallet to ensure it's updated in database
+    if (ok != true) return;
+
+    try {
+      final result = await ApiService.cancelBooking(
+        id,
+        widget.customerEmail,
+        servicePrice,
+      );
+
       try {
         await ApiService.refundToWallet(widget.customerEmail, servicePrice);
-      } catch (refundError) {
-        // If explicit refund fails, log but don't block - backend might have already handled it
-        print("Warning: Explicit refund failed: $refundError");
-      }
+      } catch (_) {}
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            result['message'] ?? "Booking canceled. Refund of \$${servicePrice.toStringAsFixed(2)} has been processed.",
+            result['message'] ??
+                "Booking cancelled. Refund \$${servicePrice.toStringAsFixed(2)} processed.",
           ),
-          duration: const Duration(seconds: 3),
         ),
       );
 
@@ -89,7 +180,6 @@ class _CurrentServicesScreenState extends State<CurrentServicesScreen> {
       );
     }
   }
-
 
   Future<void> _updateBooking(Booking booking) async {
     final updated = await Navigator.push<bool>(
@@ -110,7 +200,9 @@ class _CurrentServicesScreenState extends State<CurrentServicesScreen> {
       ),
     );
 
-    if (updated == true) setState(_loadBookings);
+    if (updated == true) {
+      setState(_loadBookings);
+    }
   }
 
   @override
@@ -120,57 +212,87 @@ class _CurrentServicesScreenState extends State<CurrentServicesScreen> {
       body: FutureBuilder<List<Booking>>(
         future: bookingsFuture,
         builder: (context, snapshot) {
-          if (!snapshot.hasData) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final bookings = snapshot.data!;
+          if (snapshot.hasError) {
+            return Center(child: Text("Error: ${snapshot.error}"));
+          }
+
+          final bookings = snapshot.data ?? [];
 
           if (bookings.isEmpty) {
             return const Center(child: Text("No bookings yet"));
           }
 
-          return ListView.builder(
-            itemCount: bookings.length,
-            itemBuilder: (context, index) {
-              final booking = bookings[index];
-
-              return Card(
-                margin: const EdgeInsets.all(10),
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(booking.serviceName,
-                          style: AppStyles.serviceNameStyle),
-                      Text("📍 ${booking.location}"),
-                      Text("📅 ${booking.bookingDate}"),
-                      Text("⏰ ${booking.bookingTime}"),
-                      if (booking.notes.isNotEmpty)
-                        Text("📝 ${booking.notes}"),
-                      const SizedBox(height: 10),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          TextButton(
-                            onPressed: () => _updateBooking(booking),
-                            child: const Text("Update"),
-                          ),
-                          TextButton(
-                            onPressed: () => _cancelBooking(booking.id!, booking.serviceName),
-                            child: const Text(
-                              "Cancel",
-                              style: TextStyle(color: Colors.red),
-                            ),
-                          ),
-                        ],
-                      )
-                    ],
-                  ),
-                ),
-              );
+          return RefreshIndicator(
+            onRefresh: () async {
+              setState(_loadBookings);
+              await bookingsFuture;
             },
+            child: ListView.builder(
+              itemCount: bookings.length,
+              itemBuilder: (context, index) {
+                final booking = bookings[index];
+                final status = booking.status;
+                final isFinal = _isFinalStatus(status);
+
+                return Card(
+                  margin: const EdgeInsets.all(10),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                booking.serviceName,
+                                style: AppStyles.serviceNameStyle,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            _statusChip(status),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Text("📍 ${booking.location}"),
+                        Text("📅 ${booking.bookingDate}"),
+                        Text("⏰ ${booking.bookingTime}"),
+                        if (booking.notes.isNotEmpty)
+                          Text("📝 ${booking.notes}"),
+                        const SizedBox(height: 10),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            TextButton(
+                              onPressed:
+                                  isFinal ? null : () => _updateBooking(booking),
+                              child: const Text("Update"),
+                            ),
+                            TextButton(
+                              onPressed: isFinal
+                                  ? null
+                                  : () => _cancelBooking(
+                                        booking.id!,
+                                        booking.serviceName,
+                                      ),
+                              child: const Text(
+                                "Cancel",
+                                style: TextStyle(color: Colors.red),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
           );
         },
       ),

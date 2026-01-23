@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../styles/app_styles.dart';
+import '../../styles/strings.dart';
 import 'ManagerOrdersScreen.dart';
 import 'ManagerServicesScreen.dart';
 import 'ManagerTeamsScreen.dart';
@@ -81,19 +82,19 @@ class _ManagerNavigationScreenState extends State<ManagerNavigationScreen>
                   destinations: const [
                     NavigationRailDestination(
                       icon: Icon(Icons.receipt_long),
-                      label: Text("Orders"),
+                      label: Text(AppStrings.orders),
                     ),
                     NavigationRailDestination(
                       icon: Icon(Icons.miscellaneous_services),
-                      label: Text("Services"),
+                      label: Text(AppStrings.services),
                     ),
                     NavigationRailDestination(
                       icon: Icon(Icons.groups),
-                      label: Text("Teams"),
+                      label: Text(AppStrings.teams),
                     ),
                     NavigationRailDestination(
                       icon: Icon(Icons.star_rate),
-                      label: Text("Feedback"),
+                      label: Text(AppStrings.feedback),
                     ),
                   ],
                 ),

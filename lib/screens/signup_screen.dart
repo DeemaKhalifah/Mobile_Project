@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../styles/app_styles.dart';
+import '../styles/strings.dart';
 import '../services/api_service.dart';
 import '../services/shared_preferences_service.dart';
 import 'CustomerNavigationScreen.dart';
@@ -34,7 +35,7 @@ class _SignupScreenState extends State<SignupScreen> {
     return Scaffold(
       backgroundColor: AppStyles.backgroundColorAlt,
       appBar: AppBar(
-        title: const Text("Sign Up"),
+        title: const Text(AppStrings.signUpTitle),
         backgroundColor: AppStyles.accentColor,
       ),
       body: Padding(
@@ -47,42 +48,42 @@ class _SignupScreenState extends State<SignupScreen> {
 
               TextFormField(
                 decoration: AppStyles.standardInputDecoration.copyWith(
-                  labelText: "Name",
+                  labelText: AppStrings.name,
                 ),
                 onSaved: (val) => name = val!.trim(),
                 validator: (val) =>
-                    val!.trim().isEmpty ? "Please enter your name" : null,
+                    val!.trim().isEmpty ? AppStrings.pleaseEnterName : null,
               ),
 
               const SizedBox(height: AppStyles.mediumSpacing),
 
               TextFormField(
                 decoration: AppStyles.standardInputDecoration.copyWith(
-                  labelText: "Email",
+                  labelText: AppStrings.email,
                 ),
                 keyboardType: TextInputType.emailAddress,
                 onSaved: (val) => email = val!.trim(),
                 validator: (val) =>
-                    val!.trim().isEmpty ? "Please enter your email" : null,
+                    val!.trim().isEmpty ? AppStrings.pleaseEnterEmail : null,
               ),
 
               const SizedBox(height: AppStyles.mediumSpacing),
 
               TextFormField(
                 decoration: AppStyles.standardInputDecoration.copyWith(
-                  labelText: "Password",
+                  labelText: AppStrings.password,
                 ),
                 obscureText: true,
                 onSaved: (val) => password = val!,
                 validator: (val) =>
-                    val!.isEmpty ? "Please enter your password" : null,
+                    val!.isEmpty ? AppStrings.pleaseEnterPassword : null,
               ),
 
               const SizedBox(height: AppStyles.mediumSpacing),
 
               TextFormField(
                 decoration: AppStyles.standardInputDecoration.copyWith(
-                  labelText: "Phone",
+                  labelText: AppStrings.phone,
                 ),
                 keyboardType: TextInputType.phone,
                 onSaved: (val) => phone = (val ?? '').trim(),
@@ -94,7 +95,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 padding: const EdgeInsets.all(12),
                 decoration: AppStyles.roleBoxDecoration,
                 child: Text(
-                  "Role: ${role.toUpperCase()}",
+                  "${AppStrings.roleLabel}: ${role.toUpperCase()}",
                   style: AppStyles.roleTextStyle,
                 ),
               ),
@@ -104,7 +105,7 @@ class _SignupScreenState extends State<SignupScreen> {
               ElevatedButton(
                 style: AppStyles.accentButtonStyle,
                 child: const Text(
-                  "Create Account",
+                  AppStrings.createAccount,
                   style: AppStyles.buttonTextStyle16,
                 ),
                 onPressed: () async {

@@ -12,10 +12,7 @@ import 'welcome_screen.dart';
 class CustomerNavigationScreen extends StatefulWidget {
   final String customerEmail;
 
-  const CustomerNavigationScreen({
-    super.key,
-    required this.customerEmail,
-  });
+  const CustomerNavigationScreen({super.key, required this.customerEmail});
 
   @override
   State<CustomerNavigationScreen> createState() =>
@@ -39,7 +36,9 @@ class _CustomerNavigationScreenState extends State<CustomerNavigationScreen> {
     });
 
     try {
-      await ApiService.getWallet(widget.customerEmail); // Fetch wallet but we don't need to store it
+      await ApiService.getWallet(
+        widget.customerEmail,
+      ); // Fetch wallet but we don't need to store it
     } catch (e) {
       // Ignore errors here, screens will handle it individually
     }
@@ -52,9 +51,7 @@ class _CustomerNavigationScreenState extends State<CustomerNavigationScreen> {
   @override
   Widget build(BuildContext context) {
     if (_isLoadingWallet) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return Scaffold(
@@ -102,19 +99,13 @@ class _CustomerNavigationScreenState extends State<CustomerNavigationScreen> {
         index: _currentIndex,
         children: [
           // Services screen
-          CustomerMainScreen(
-            customerEmail: widget.customerEmail,
-          ),
+          CustomerMainScreen(customerEmail: widget.customerEmail),
 
           // My Bookings screen
-          CurrentServicesScreen(
-            customerEmail: widget.customerEmail,
-          ),
+          CurrentServicesScreen(customerEmail: widget.customerEmail),
 
           // Wallet Summary screen
-          WalletSummaryScreen(
-            customerEmail: widget.customerEmail,
-          ),
+          WalletSummaryScreen(customerEmail: widget.customerEmail),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -128,10 +119,7 @@ class _CustomerNavigationScreenState extends State<CustomerNavigationScreen> {
         selectedItemColor: AppStyles.whiteColor,
         unselectedItemColor: AppStyles.white70,
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Services',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Services'),
           BottomNavigationBarItem(
             icon: Icon(Icons.list_alt),
             label: 'My Bookings',

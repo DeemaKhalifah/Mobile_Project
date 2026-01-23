@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../styles/app_styles.dart';
+import '../styles/strings.dart';
 import 'login_screen.dart';
 
 class WelcomeScreen extends StatelessWidget {
@@ -19,13 +20,13 @@ class WelcomeScreen extends StatelessWidget {
             ),
             const SizedBox(height: AppStyles.xlargeSpacing),
             const Text(
-              "Welcome to Car Wash App",
+              AppStrings.welcomeTitle,
               style: AppStyles.welcomeTitleStyle,
             ),
             const SizedBox(height: AppStyles.xlargeSpacing40),
-            _roleButton(context, "Customer"),
-            _roleButton(context, "Employee"),
-            _roleButton(context, "Manager"),
+            _roleButton(context, AppStrings.customer),
+            _roleButton(context, AppStrings.employee),
+            _roleButton(context, AppStrings.manager),
           ],
         ),
       ),
@@ -39,10 +40,7 @@ class WelcomeScreen extends StatelessWidget {
         width: double.infinity,
         child: ElevatedButton(
           style: AppStyles.whiteButtonStyle,
-          child: Text(
-            role,
-            style: AppStyles.buttonTextStyle,
-          ),
+          child: Text(role, style: AppStyles.buttonTextStyle),
           onPressed: () {
             Navigator.push(
               context,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../styles/app_styles.dart';
+import '../../styles/strings.dart';
 import '../../services/api_service.dart';
 import '../../services/shared_preferences_service.dart';
 import 'ManagerOrderDetailsScreen.dart';
@@ -47,16 +48,16 @@ class _ManagerOrdersScreenState extends State<ManagerOrdersScreen> {
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        title: const Text("Logout"),
+        title: const Text(AppStrings.logout),
         content: const Text("Are you sure you want to logout?"),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text("Cancel"),
+            child: const Text(AppStrings.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text("Logout"),
+            child: const Text(AppStrings.logout),
           ),
         ],
       ),
@@ -76,7 +77,7 @@ class _ManagerOrdersScreenState extends State<ManagerOrdersScreen> {
       backgroundColor: AppStyles.backgroundColorAlt,
       appBar: AppBar(
         backgroundColor: AppStyles.primaryColor,
-        title: const Text("Manager - Orders"),
+        title: const Text(AppStrings.orders),
         automaticallyImplyLeading: false,
         leading: const SizedBox.shrink(),
         actions: [
@@ -89,7 +90,7 @@ class _ManagerOrdersScreenState extends State<ManagerOrdersScreen> {
           : _error.isNotEmpty
           ? Center(child: Text(_error))
           : _orders.isEmpty
-          ? const Center(child: Text("No orders found"))
+          ? const Center(child: Text(AppStrings.noDataFound))
           : ListView.builder(
               padding: const EdgeInsets.all(AppStyles.standardPadding16),
               itemCount: _orders.length,
@@ -104,7 +105,7 @@ class _ManagerOrdersScreenState extends State<ManagerOrdersScreen> {
                 final time = _safe(o['booking_time']);
 
                 final rawTeam = _safe(o['team_name']);
-                final team = rawTeam.isEmpty ? "Unassigned" : rawTeam;
+                final team = rawTeam.isEmpty ? AppStrings.status : rawTeam;
 
                 return Card(
                   shape: AppStyles.cardShape,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../styles/app_styles.dart';
+import '../styles/strings.dart';
 import '../models/service.dart';
 import '../models/booking.dart';
 import '../models/customerwallet.dart';
@@ -41,12 +42,24 @@ class _BookingFormState extends State<BookingForm> {
   @override
   void initState() {
     super.initState();
-    locationController = TextEditingController(text: widget.existingBooking?.location ?? '');
-    notesController = TextEditingController(text: widget.existingBooking?.notes ?? '');
-    dateController = TextEditingController(text: widget.existingBooking?.bookingDate ?? '');
-    timeController = TextEditingController(text: widget.existingBooking?.bookingTime ?? '');
-    carModelController = TextEditingController(text: widget.existingBooking?.carModel ?? '');
-    carPlateController = TextEditingController(text: widget.existingBooking?.carPlate ?? '');
+    locationController = TextEditingController(
+      text: widget.existingBooking?.location ?? '',
+    );
+    notesController = TextEditingController(
+      text: widget.existingBooking?.notes ?? '',
+    );
+    dateController = TextEditingController(
+      text: widget.existingBooking?.bookingDate ?? '',
+    );
+    timeController = TextEditingController(
+      text: widget.existingBooking?.bookingTime ?? '',
+    );
+    carModelController = TextEditingController(
+      text: widget.existingBooking?.carModel ?? '',
+    );
+    carPlateController = TextEditingController(
+      text: widget.existingBooking?.carPlate ?? '',
+    );
   }
 
   @override
@@ -62,7 +75,8 @@ class _BookingFormState extends State<BookingForm> {
 
   Future<void> _pickDate() async {
     final initialDate = dateController.text.isNotEmpty
-        ? DateFormat('yyyy-MM-dd').tryParse(dateController.text) ?? DateTime.now()
+        ? DateFormat('yyyy-MM-dd').tryParse(dateController.text) ??
+              DateTime.now()
         : DateTime.now();
 
     final picked = await showDatePicker(
@@ -83,15 +97,27 @@ class _BookingFormState extends State<BookingForm> {
       try {
         final parts = timeController.text.split(':');
         if (parts.length >= 2) {
-          initialTime = TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
+          initialTime = TimeOfDay(
+            hour: int.parse(parts[0]),
+            minute: int.parse(parts[1]),
+          );
         }
       } catch (_) {}
     }
 
-    final picked = await showTimePicker(context: context, initialTime: initialTime);
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: initialTime,
+    );
     if (picked != null) {
       final now = DateTime.now();
-      final dt = DateTime(now.year, now.month, now.day, picked.hour, picked.minute);
+      final dt = DateTime(
+        now.year,
+        now.month,
+        now.day,
+        picked.hour,
+        picked.minute,
+      );
       timeController.text = DateFormat('HH:mm:ss').format(dt);
     }
   }
@@ -100,7 +126,11 @@ class _BookingFormState extends State<BookingForm> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.isUpdate ? "Update Booking" : "Book ${widget.service?.name ?? ''}"),
+        title: Text(
+          widget.isUpdate
+              ? "Update Booking"
+              : "Book ${widget.service?.name ?? ''}",
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(AppStyles.standardPadding),
@@ -113,10 +143,11 @@ class _BookingFormState extends State<BookingForm> {
                 TextFormField(
                   controller: locationController,
                   decoration: const InputDecoration(
-                    labelText: "Location",
+                    labelText: AppStrings.location,
                     border: OutlineInputBorder(),
                   ),
-                  validator: (v) => v == null || v.isEmpty ? "Enter location" : null,
+                  validator: (v) =>
+                      v == null || v.isEmpty ? AppStrings.enterLocation : null,
                 ),
                 const SizedBox(height: AppStyles.smallSpacing),
 
@@ -124,7 +155,7 @@ class _BookingFormState extends State<BookingForm> {
                 TextFormField(
                   controller: notesController,
                   decoration: const InputDecoration(
-                    labelText: "Notes",
+                    labelText: AppStrings.notes,
                     border: OutlineInputBorder(),
                   ),
                 ),
@@ -135,12 +166,13 @@ class _BookingFormState extends State<BookingForm> {
                   controller: dateController,
                   readOnly: true,
                   decoration: const InputDecoration(
-                    labelText: "Select Date",
+                    labelText: AppStrings.selectDate,
                     suffixIcon: Icon(Icons.calendar_today),
                     border: OutlineInputBorder(),
                   ),
                   onTap: _pickDate,
-                  validator: (v) => v == null || v.isEmpty ? "Pick a date" : null,
+                  validator: (v) =>
+                      v == null || v.isEmpty ? AppStrings.selectDate : null,
                 ),
                 const SizedBox(height: AppStyles.smallSpacing),
 
@@ -149,12 +181,13 @@ class _BookingFormState extends State<BookingForm> {
                   controller: timeController,
                   readOnly: true,
                   decoration: const InputDecoration(
-                    labelText: "Select Time",
+                    labelText: AppStrings.selectTime,
                     suffixIcon: Icon(Icons.access_time),
                     border: OutlineInputBorder(),
                   ),
                   onTap: _pickTime,
-                  validator: (v) => v == null || v.isEmpty ? "Pick a time" : null,
+                  validator: (v) =>
+                      v == null || v.isEmpty ? AppStrings.selectTime : null,
                 ),
                 const SizedBox(height: AppStyles.smallSpacing),
 
@@ -162,10 +195,11 @@ class _BookingFormState extends State<BookingForm> {
                 TextFormField(
                   controller: carModelController,
                   decoration: const InputDecoration(
-                    labelText: "Car Model",
+                    labelText: AppStrings.carModel,
                     border: OutlineInputBorder(),
                   ),
-                  validator: (v) => v == null || v.isEmpty ? "Enter car model" : null,
+                  validator: (v) =>
+                      v == null || v.isEmpty ? AppStrings.enterCarModel : null,
                 ),
                 const SizedBox(height: AppStyles.smallSpacing),
 
@@ -173,17 +207,21 @@ class _BookingFormState extends State<BookingForm> {
                 TextFormField(
                   controller: carPlateController,
                   decoration: const InputDecoration(
-                    labelText: "Car Plate Number",
+                    labelText: AppStrings.carPlate,
                     hintText: "Example: ABC123 or 12XYZ34",
                     border: OutlineInputBorder(),
                   ),
                   validator: (v) {
-                    if (v == null || v.isEmpty) return "Enter plate number";
+                    if (v == null || v.isEmpty)
+                      return AppStrings.enterPlateNumber;
 
                     // Plate validation: letters + numbers, 6-8 characters
-                    final pattern = RegExp(r'^[A-Z0-9]{6,8}$', caseSensitive: false);
+                    final pattern = RegExp(
+                      r'^[A-Z0-9]{6,8}$',
+                      caseSensitive: false,
+                    );
                     if (!pattern.hasMatch(v.trim())) {
-                      return "Invalid plate (6-8 letters/numbers)";
+                      return AppStrings.invalidPlate;
                     }
                     return null;
                   },
@@ -210,9 +248,16 @@ class _BookingFormState extends State<BookingForm> {
                         );
 
                         try {
-                          final result = await ApiService.updateBooking(updatedBooking);
+                          final result = await ApiService.updateBooking(
+                            updatedBooking,
+                          );
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(result['message'] ?? 'Booking updated successfully')),
+                            SnackBar(
+                              content: Text(
+                                result['message'] ??
+                                    'Booking updated successfully',
+                              ),
+                            ),
                           );
                           Navigator.pop(context, true);
                         } catch (e) {
@@ -241,7 +286,9 @@ class _BookingFormState extends State<BookingForm> {
                           );
 
                           if (result['status'] == true) {
-                            final customerId = await SharedPreferencesService.getCustomerId() ?? 0;
+                            final customerId =
+                                await SharedPreferencesService.getCustomerId() ??
+                                0;
 
                             Navigator.pop(context, true);
                             Navigator.push(
@@ -258,16 +305,24 @@ class _BookingFormState extends State<BookingForm> {
                             );
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(result['message'] ?? 'Booking failed')),
+                              SnackBar(
+                                content: Text(
+                                  result['message'] ?? 'Booking failed',
+                                ),
+                              ),
                             );
                           }
                         } catch (e) {
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                          ScaffoldMessenger.of(
+                            context,
+                          ).showSnackBar(SnackBar(content: Text('Error: $e')));
                         }
                       }
                     }
                   },
-                  child: Text(widget.isUpdate ? "Update Booking" : "Confirm Booking"),
+                  child: Text(
+                    widget.isUpdate ? "Update Booking" : "Confirm Booking",
+                  ),
                 ),
               ],
             ),

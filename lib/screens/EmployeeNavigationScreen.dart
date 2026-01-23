@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../styles/app_styles.dart';
+import '../../styles/strings.dart';
 import '../../services/shared_preferences_service.dart';
 import 'login_screen.dart';
 import 'EmployeeOrdersScreen.dart';
@@ -29,8 +30,14 @@ class _EmployeeNavigationScreenState extends State<EmployeeNavigationScreen> {
         selectedItemColor: AppStyles.primaryColor,
         onTap: (i) => setState(() => _index = i),
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.list_alt), label: "Orders"),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.list_alt),
+            label: AppStrings.orders,
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: AppStrings.profile,
+          ),
         ],
       ),
     );
@@ -80,7 +87,7 @@ class _EmployeeProfileScreenState extends State<_EmployeeProfileScreen> {
       backgroundColor: AppStyles.backgroundColorAlt,
       appBar: AppBar(
         backgroundColor: AppStyles.primaryColor,
-        title: const Text("Employee Profile"),
+        title: const Text(AppStrings.profileTitle),
       ),
       body: Padding(
         padding: const EdgeInsets.all(AppStyles.standardPadding16),
@@ -99,7 +106,9 @@ class _EmployeeProfileScreenState extends State<_EmployeeProfileScreen> {
                 const SizedBox(height: 10),
                 Text(_email, style: AppStyles.titleStyle),
                 const SizedBox(height: 6),
-                Text("Role: ${_role.isEmpty ? 'employee' : _role}"),
+                Text(
+                  "${AppStrings.role}: ${_role.isEmpty ? 'employee' : _role}",
+                ),
                 const SizedBox(height: 16),
                 SizedBox(
                   width: double.infinity,
@@ -107,7 +116,7 @@ class _EmployeeProfileScreenState extends State<_EmployeeProfileScreen> {
                     style: AppStyles.primaryButtonStyleRounded,
                     onPressed: _logout,
                     icon: const Icon(Icons.logout),
-                    label: const Text("Logout"),
+                    label: const Text(AppStrings.logout),
                   ),
                 ),
               ],

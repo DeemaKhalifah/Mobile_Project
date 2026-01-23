@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../styles/app_styles.dart';
+import '../../styles/strings.dart';
 import '../../services/api_service.dart';
 
 class ManagerTeamDetailsScreen extends StatefulWidget {
@@ -84,9 +85,9 @@ class _ManagerTeamDetailsScreenState extends State<ManagerTeamDetailsScreen> {
     if (teamId == 0 || empId == null) return;
 
     if (_members.length >= 4) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Team already has 4 employees")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text(AppStrings.error)));
       return;
     }
 
@@ -154,19 +155,19 @@ class _ManagerTeamDetailsScreenState extends State<ManagerTeamDetailsScreen> {
       context: context,
       barrierDismissible: false,
       builder: (_) => AlertDialog(
-        title: const Text("Delete Team"),
+        title: const Text(AppStrings.delete),
         content: const Text(
           "Are you sure you want to delete this team?\nThis action cannot be undone.",
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text("Cancel"),
+            child: const Text(AppStrings.cancel),
           ),
           ElevatedButton(
             style: AppStyles.primaryButtonStyleRounded,
             onPressed: () => Navigator.pop(context, true),
-            child: const Text("Delete"),
+            child: const Text(AppStrings.delete),
           ),
         ],
       ),
@@ -297,7 +298,7 @@ class _ManagerTeamDetailsScreenState extends State<ManagerTeamDetailsScreen> {
 
                         // ✅ Dropdown fix
                         DropdownButtonFormField<int>(
-                          value: _selectedEmployeeId,
+                          initialValue: _selectedEmployeeId,
                           isExpanded: true,
                           items: _available
                               .where((e) => (_toInt(e['id']) ?? 0) > 0)

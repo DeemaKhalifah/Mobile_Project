@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../styles/app_styles.dart';
+import '../styles/strings.dart';
 import '../models/service.dart';
 import '../models/customerwallet.dart';
 import '../services/api_service.dart';
@@ -142,7 +143,7 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
                               ),
                             );
                           },
-                    child: const Text("Book Service"),
+                    child: const Text(AppStrings.bookService),
                   ),
           ],
         ),

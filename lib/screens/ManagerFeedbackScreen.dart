@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../styles/app_styles.dart';
+import '../../styles/strings.dart';
 import '../../services/api_service.dart';
 import '../../services/shared_preferences_service.dart';
 
@@ -46,16 +47,16 @@ class _ManagerFeedbackScreenState extends State<ManagerFeedbackScreen> {
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        title: const Text("Logout"),
+        title: const Text(AppStrings.logout),
         content: const Text("Are you sure you want to logout?"),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text("Cancel"),
+            child: const Text(AppStrings.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text("Logout"),
+            child: const Text(AppStrings.logout),
           ),
         ],
       ),
@@ -75,7 +76,7 @@ class _ManagerFeedbackScreenState extends State<ManagerFeedbackScreen> {
       backgroundColor: AppStyles.backgroundColorAlt,
       appBar: AppBar(
         backgroundColor: AppStyles.primaryColor,
-        title: const Text("Manager - Feedback"),
+        title: const Text(AppStrings.feedback),
 
         automaticallyImplyLeading: false,
         leading: const SizedBox.shrink(),
@@ -90,7 +91,7 @@ class _ManagerFeedbackScreenState extends State<ManagerFeedbackScreen> {
           : _error.isNotEmpty
           ? Center(child: Text(_error))
           : _feedbacks.isEmpty
-          ? const Center(child: Text("No feedback found"))
+          ? const Center(child: Text(AppStrings.noDataFound))
           : ListView.builder(
               padding: const EdgeInsets.all(AppStyles.standardPadding16),
               itemCount: _feedbacks.length,

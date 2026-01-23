@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import '../styles/app_styles.dart';
+import '../styles/strings.dart';
 import '../models/customerwallet.dart';
 import '../services/api_service.dart';
 
@@ -38,9 +39,9 @@ class _WalletScreenState extends State<WalletScreen> {
         wallet = loadedWallet;
       });
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Failed to load wallet: $e")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Failed to load wallet: $e")));
     }
   }
 
@@ -62,13 +63,13 @@ class _WalletScreenState extends State<WalletScreen> {
           expiryDate: expiryDate.isNotEmpty ? expiryDate : null,
           cvv: cvv.isNotEmpty ? cvv : null,
         );
-        
+
         // Update local wallet object with card details
         if (cardNumber.isNotEmpty) wallet!.cardNumber = cardNumber;
         if (cardHolder.isNotEmpty) wallet!.cardHolder = cardHolder;
         if (expiryDate.isNotEmpty) wallet!.expiryDate = expiryDate;
         if (cvv.isNotEmpty) wallet!.cvv = cvv;
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -76,13 +77,13 @@ class _WalletScreenState extends State<WalletScreen> {
             ),
           ),
         );
-        
+
         // Reload wallet to get latest from database
         await _loadWallet();
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Failed to update wallet: $e")),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Failed to update wallet: $e")));
       }
     }
   }
@@ -90,14 +91,12 @@ class _WalletScreenState extends State<WalletScreen> {
   @override
   Widget build(BuildContext context) {
     if (wallet == null) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Wallet"),
+        title: const Text(AppStrings.wallet),
         backgroundColor: AppStyles.primaryVeryDarkColor,
       ),
       backgroundColor: AppStyles.primaryLightColor,
@@ -115,16 +114,24 @@ class _WalletScreenState extends State<WalletScreen> {
               ),
               const SizedBox(height: AppStyles.xlargeSpacing),
               TextFormField(
-                initialValue: wallet!.cardNumber.isNotEmpty ? wallet!.cardNumber : '',
-                decoration: AppStyles.filledInputDecoration.copyWith(labelText: "Card Number"),
+                initialValue: wallet!.cardNumber.isNotEmpty
+                    ? wallet!.cardNumber
+                    : '',
+                decoration: AppStyles.filledInputDecoration.copyWith(
+                  labelText: AppStrings.cardNumber,
+                ),
                 keyboardType: TextInputType.number,
                 onSaved: (val) => cardNumber = val ?? '',
                 validator: null, // Card number is optional
               ),
               const SizedBox(height: AppStyles.mediumSpacing),
               TextFormField(
-                initialValue: wallet!.cardHolder.isNotEmpty ? wallet!.cardHolder : '',
-                decoration: AppStyles.filledInputDecoration.copyWith(labelText: "Card Holder Name"),
+                initialValue: wallet!.cardHolder.isNotEmpty
+                    ? wallet!.cardHolder
+                    : '',
+                decoration: AppStyles.filledInputDecoration.copyWith(
+                  labelText: AppStrings.cardHolderName,
+                ),
                 onSaved: (val) => cardHolder = val ?? '',
                 validator: null, // Card holder is optional
               ),
@@ -133,8 +140,12 @@ class _WalletScreenState extends State<WalletScreen> {
                 children: [
                   Expanded(
                     child: TextFormField(
-                      initialValue: wallet!.expiryDate.isNotEmpty ? wallet!.expiryDate : '',
-                      decoration: AppStyles.filledInputDecoration.copyWith(labelText: "Expiry Date (MM/YY)"),
+                      initialValue: wallet!.expiryDate.isNotEmpty
+                          ? wallet!.expiryDate
+                          : '',
+                      decoration: AppStyles.filledInputDecoration.copyWith(
+                        labelText: AppStrings.expiryDate,
+                      ),
                       onSaved: (val) => expiryDate = val ?? '',
                       validator: null, // Expiry date is optional
                     ),
@@ -143,7 +154,9 @@ class _WalletScreenState extends State<WalletScreen> {
                   Expanded(
                     child: TextFormField(
                       initialValue: wallet!.cvv.isNotEmpty ? wallet!.cvv : '',
-                      decoration: AppStyles.filledInputDecoration.copyWith(labelText: "CVV"),
+                      decoration: AppStyles.filledInputDecoration.copyWith(
+                        labelText: AppStrings.cvv,
+                      ),
                       keyboardType: TextInputType.number,
                       onSaved: (val) => cvv = val ?? '',
                       validator: null, // CVV is optional
@@ -153,16 +166,22 @@ class _WalletScreenState extends State<WalletScreen> {
               ),
               const SizedBox(height: AppStyles.mediumSpacing),
               TextFormField(
-                decoration: AppStyles.filledInputDecoration.copyWith(labelText: "Amount to Add"),
+                decoration: AppStyles.filledInputDecoration.copyWith(
+                  labelText: "Amount to Add",
+                ),
                 keyboardType: TextInputType.number,
                 onSaved: (val) => amount = double.tryParse(val!) ?? 0.0,
-                validator: (val) => val!.isEmpty ? "Enter amount" : null,
+                validator: (val) =>
+                    val!.isEmpty ? AppStrings.fieldRequired : null,
               ),
               const SizedBox(height: AppStyles.xlargeSpacing),
               ElevatedButton(
                 style: AppStyles.walletButtonStyle,
                 onPressed: _addMoney,
-                child: const Text("Add Money", style: AppStyles.buttonTextStyle),
+                child: const Text(
+                  AppStrings.addMoney,
+                  style: AppStyles.buttonTextStyle,
+                ),
               ),
             ],
           ),
@@ -171,4 +190,3 @@ class _WalletScreenState extends State<WalletScreen> {
     );
   }
 }
-

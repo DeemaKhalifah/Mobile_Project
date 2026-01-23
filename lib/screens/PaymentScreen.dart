@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import '../styles/app_styles.dart';
+import '../styles/strings.dart';
 import '../models/customerwallet.dart';
 import '../services/api_service.dart';
 import 'walletscreen.dart';
@@ -50,7 +51,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     return Scaffold(
       backgroundColor: AppStyles.primaryLightColor,
       appBar: AppBar(
-        title: const Text("Payment"),
+        title: const Text(AppStrings.payment),
         backgroundColor: AppStyles.primaryVeryDarkColor,
         actions: [
           IconButton(
@@ -60,7 +61,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => WalletScreen(customerEmail: _customerEmail!),
+                    builder: (_) =>
+                        WalletScreen(customerEmail: _customerEmail!),
                   ),
                 );
               }
@@ -106,11 +108,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
                           _customerEmail ?? '',
                           widget.wallet.balance,
                         );
-                        
+
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(
-                                "Payment successful. Remaining: \$${widget.wallet.balance.toStringAsFixed(2)}"),
+                              "Payment successful. Remaining: \$${widget.wallet.balance.toStringAsFixed(2)}",
+                            ),
                           ),
                         );
 

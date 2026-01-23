@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../styles/app_styles.dart';
+import '../styles/strings.dart';
 import '../models/service.dart';
 import '../services/api_service.dart';
 import '../services/shared_preferences_service.dart';
@@ -187,7 +188,7 @@ class _CustomerMainScreenState extends State<CustomerMainScreen> {
                               ),
                             );
                           },
-                          child: const Text("View Details"),
+                          child: const Text(AppStrings.viewDetails),
                         ),
                       ),
                     ],

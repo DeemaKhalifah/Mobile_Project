@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../styles/app_styles.dart';
+import '../../styles/strings.dart';
 import '../../services/api_service.dart';
 import '../../services/shared_preferences_service.dart';
 import 'ManagerTeamDetailsScreen.dart';
@@ -62,7 +63,7 @@ class _ManagerTeamsScreenState extends State<ManagerTeamsScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text("Failed to load employees: $e")));
+      ).showSnackBar(SnackBar(content: Text(AppStrings.error)));
       return;
     }
 
@@ -73,7 +74,7 @@ class _ManagerTeamsScreenState extends State<ManagerTeamsScreen> {
       barrierDismissible: false,
       builder: (_) => StatefulBuilder(
         builder: (dialogCtx, setDialogState) => AlertDialog(
-          title: const Text("Add Team"),
+          title: const Text(AppStrings.status),
           scrollable: true, // ✅ مهم عشان الكيبورد وما يصير overflow
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -81,7 +82,7 @@ class _ManagerTeamsScreenState extends State<ManagerTeamsScreen> {
               TextField(
                 controller: nameCtrl,
                 decoration: const InputDecoration(
-                  labelText: "Team Name",
+                  labelText: AppStrings.name,
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -89,7 +90,7 @@ class _ManagerTeamsScreenState extends State<ManagerTeamsScreen> {
 
               // ✅ Dropdown fix: isExpanded + ellipsis
               DropdownButtonFormField<int>(
-                value: selectedEmpId,
+                initialValue: selectedEmpId,
                 isExpanded: true,
                 items: available
                     .map((e) {
@@ -113,7 +114,7 @@ class _ManagerTeamsScreenState extends State<ManagerTeamsScreen> {
                     ? null
                     : (v) => setDialogState(() => selectedEmpId = v),
                 decoration: const InputDecoration(
-                  labelText: "Leader Employee",
+                  labelText: AppStrings.status,
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -122,7 +123,7 @@ class _ManagerTeamsScreenState extends State<ManagerTeamsScreen> {
               TextField(
                 controller: carPlateCtrl,
                 decoration: const InputDecoration(
-                  labelText: "Car Number Plate",
+                  labelText: AppStrings.carPlate,
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -139,7 +140,7 @@ class _ManagerTeamsScreenState extends State<ManagerTeamsScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogCtx),
-              child: const Text("Cancel"),
+              child: const Text(AppStrings.cancel),
             ),
             ElevatedButton(
               style: AppStyles.primaryButtonStyleRounded,
@@ -212,16 +213,16 @@ class _ManagerTeamsScreenState extends State<ManagerTeamsScreen> {
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        title: const Text("Logout"),
+        title: const Text(AppStrings.logout),
         content: const Text("Are you sure you want to logout?"),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text("Cancel"),
+            child: const Text(AppStrings.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text("Logout"),
+            child: const Text(AppStrings.logout),
           ),
         ],
       ),
@@ -240,7 +241,7 @@ class _ManagerTeamsScreenState extends State<ManagerTeamsScreen> {
       backgroundColor: AppStyles.backgroundColorAlt,
       appBar: AppBar(
         backgroundColor: AppStyles.primaryColor,
-        title: const Text("Manager - Teams"),
+        title: const Text(AppStrings.status),
         automaticallyImplyLeading: false,
         leading: const SizedBox.shrink(),
         actions: [
@@ -257,7 +258,7 @@ class _ManagerTeamsScreenState extends State<ManagerTeamsScreen> {
           : _error.isNotEmpty
           ? Center(child: Text(_error))
           : _teams.isEmpty
-          ? const Center(child: Text("No teams found"))
+          ? const Center(child: Text(AppStrings.noDataFound))
           : ListView.builder(
               padding: const EdgeInsets.all(AppStyles.standardPadding16),
               itemCount: _teams.length,

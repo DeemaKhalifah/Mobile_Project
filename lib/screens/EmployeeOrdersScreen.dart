@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
 import '../../services/shared_preferences_service.dart';
 import '../../styles/app_styles.dart';
+import '../../styles/strings.dart';
 import 'EmployeeOrderDetailsScreen.dart';
 
 class EmployeeOrdersScreen extends StatefulWidget {
@@ -97,7 +98,7 @@ class _EmployeeOrdersScreenState extends State<EmployeeOrdersScreen> {
       backgroundColor: AppStyles.backgroundColorAlt,
       appBar: AppBar(
         backgroundColor: AppStyles.primaryColor,
-        title: const Text("Employee Orders"),
+        title: const Text(AppStrings.employeeOrders),
         actions: [
           IconButton(onPressed: _loadOrders, icon: const Icon(Icons.refresh)),
         ],
@@ -121,7 +122,7 @@ class _EmployeeOrdersScreenState extends State<EmployeeOrdersScreen> {
                 _loadOrders();
               },
               decoration: AppStyles.filledInputDecoration.copyWith(
-                labelText: "Filter by status",
+                labelText: AppStrings.filterByStatus,
               ),
             ),
           ),

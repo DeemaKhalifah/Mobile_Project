@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../styles/app_styles.dart';
+import '../styles/strings.dart';
 import '../models/customerwallet.dart';
 import '../services/api_service.dart';
 import 'walletscreen.dart';
@@ -42,26 +43,22 @@ class _WalletSummaryScreenState extends State<WalletSummaryScreen> {
         _isRefreshing = false;
         _isLoading = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Failed to load wallet: $e")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Failed to load wallet: $e")));
     }
   }
 
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return Scaffold(
       backgroundColor: AppStyles.primaryLightColor,
       appBar: AppBar(
-        title: const Text("Wallet"),
+        title: const Text(AppStrings.wallet),
         backgroundColor: AppStyles.primaryVeryDarkColor,
         actions: [
           IconButton(
@@ -84,7 +81,7 @@ class _WalletSummaryScreenState extends State<WalletSummaryScreen> {
                   child: Column(
                     children: [
                       const Text(
-                        "Current Balance",
+                        AppStrings.currentBalance,
                         style: TextStyle(
                           color: AppStyles.whiteColor,
                           fontSize: 18,
@@ -94,7 +91,8 @@ class _WalletSummaryScreenState extends State<WalletSummaryScreen> {
                       const SizedBox(height: AppStyles.smallSpacing),
                       _isRefreshing
                           ? const CircularProgressIndicator(
-                              color: AppStyles.whiteColor)
+                              color: AppStyles.whiteColor,
+                            )
                           : Text(
                               "\$${_currentWallet?.balance.toStringAsFixed(2) ?? '0.00'}",
                               style: AppStyles.walletBalanceStyle,
@@ -110,15 +108,15 @@ class _WalletSummaryScreenState extends State<WalletSummaryScreen> {
                     await Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => WalletScreen(
-                            customerEmail: widget.customerEmail),
+                        builder: (_) =>
+                            WalletScreen(customerEmail: widget.customerEmail),
                       ),
                     );
                     // Refresh wallet after returning from WalletScreen
                     _refreshWallet();
                   },
                   child: const Text(
-                    "Add Money to Wallet",
+                    AppStrings.addMoney,
                     style: AppStyles.buttonTextStyle,
                   ),
                 ),

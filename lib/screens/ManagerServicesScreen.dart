@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import '../../styles/app_styles.dart';
+import '../../styles/strings.dart';
 import '../../services/api_service.dart';
 import 'ManagerServiceDetailsScreen.dart';
 import '../../services/shared_preferences_service.dart';
@@ -70,18 +71,20 @@ class _ManagerServicesScreenState extends State<ManagerServicesScreen> {
       context: context,
       builder: (_) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
-          title: Text(isEdit ? "Edit Service" : "Add Service"),
+          title: Text(isEdit ? AppStrings.edit : AppStrings.services),
           content: SingleChildScrollView(
             child: Column(
               children: [
                 TextField(
                   controller: nameCtrl,
-                  decoration: const InputDecoration(labelText: "Name"),
+                  decoration: const InputDecoration(labelText: AppStrings.name),
                 ),
                 const SizedBox(height: 8),
                 TextField(
                   controller: priceCtrl,
-                  decoration: const InputDecoration(labelText: "Price"),
+                  decoration: const InputDecoration(
+                    labelText: AppStrings.price,
+                  ),
                   keyboardType: TextInputType.number,
                 ),
                 const SizedBox(height: 8),
@@ -140,7 +143,7 @@ class _ManagerServicesScreenState extends State<ManagerServicesScreen> {
                 TextField(
                   controller: descCtrl,
                   decoration: const InputDecoration(
-                    labelText: "Description (optional)",
+                    labelText: AppStrings.description,
                   ),
                   maxLines: 3,
                 ),
@@ -150,7 +153,7 @@ class _ManagerServicesScreenState extends State<ManagerServicesScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text("Cancel"),
+              child: const Text(AppStrings.cancel),
             ),
             ElevatedButton(
               style: AppStyles.primaryButtonStyleRounded,
@@ -160,7 +163,7 @@ class _ManagerServicesScreenState extends State<ManagerServicesScreen> {
 
                 if (name.isEmpty || price <= 0) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Enter valid name & price")),
+                    const SnackBar(content: Text(AppStrings.error)),
                   );
                   return;
                 }
@@ -172,7 +175,7 @@ class _ManagerServicesScreenState extends State<ManagerServicesScreen> {
                     final id = int.tryParse(_safe(service['id'])) ?? 0;
                     if (id == 0) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("Invalid service ID")),
+                        const SnackBar(content: Text(AppStrings.error)),
                       );
                       return;
                     }
@@ -198,7 +201,7 @@ class _ManagerServicesScreenState extends State<ManagerServicesScreen> {
                     SnackBar(
                       content: Text(
                         _safe(res['message']).isEmpty
-                            ? "Saved"
+                            ? AppStrings.success
                             : _safe(res['message']),
                       ),
                     ),
@@ -209,10 +212,10 @@ class _ManagerServicesScreenState extends State<ManagerServicesScreen> {
                 } catch (e) {
                   ScaffoldMessenger.of(
                     context,
-                  ).showSnackBar(SnackBar(content: Text("Failed: $e")));
+                  ).showSnackBar(SnackBar(content: Text(AppStrings.error)));
                 }
               },
-              child: const Text("Save"),
+              child: const Text(AppStrings.done),
             ),
           ],
         ),
@@ -238,16 +241,16 @@ class _ManagerServicesScreenState extends State<ManagerServicesScreen> {
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        title: const Text("Logout"),
+        title: const Text(AppStrings.logout),
         content: const Text("Are you sure you want to logout?"),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text("Cancel"),
+            child: const Text(AppStrings.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text("Logout"),
+            child: const Text(AppStrings.logout),
           ),
         ],
       ),
@@ -267,7 +270,7 @@ class _ManagerServicesScreenState extends State<ManagerServicesScreen> {
       backgroundColor: AppStyles.backgroundColorAlt,
       appBar: AppBar(
         backgroundColor: AppStyles.primaryColor,
-        title: const Text("Manager - Services"),
+        title: const Text(AppStrings.services),
 
         automaticallyImplyLeading: false,
         leading: const SizedBox.shrink(),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../styles/app_styles.dart';
+import '../../styles/strings.dart';
 import '../../services/api_service.dart';
 import '../../services/shared_preferences_service.dart';
 
@@ -85,7 +86,7 @@ class _ManagerOrderDetailsScreenState extends State<ManagerOrderDetailsScreen> {
           : _error.isNotEmpty
           ? Center(child: Text(_error))
           : o == null
-          ? const Center(child: Text("Order not found"))
+          ? const Center(child: Text(AppStrings.noDataFound))
           : Padding(
               padding: const EdgeInsets.all(AppStyles.standardPadding16),
               child: Card(

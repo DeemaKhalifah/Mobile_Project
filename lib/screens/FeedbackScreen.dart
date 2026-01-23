@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/feedbackmodel.dart';
 import '../services/api_service.dart';
+import '../styles/strings.dart';
 
 class FeedbackScreen extends StatefulWidget {
   final int customerId;
@@ -43,9 +44,9 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
 
   void submitFeedback() async {
     if (_rating == 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please select a rating")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text(AppStrings.error)));
       return;
     }
 
@@ -59,9 +60,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
     final success = await ApiService.submitFeedback(feedback);
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(success ? "Feedback submitted!" : "Failed to submit feedback"),
-      ),
+      SnackBar(content: Text(success ? AppStrings.success : AppStrings.error)),
     );
 
     if (success) Navigator.pop(context);
@@ -70,7 +69,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Rate Service")),
+      appBar: AppBar(title: const Text(AppStrings.feedback)),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -94,7 +93,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
             ElevatedButton(
               onPressed: submitFeedback,
               child: const Text("Submit Feedback"),
-            )
+            ),
           ],
         ),
       ),

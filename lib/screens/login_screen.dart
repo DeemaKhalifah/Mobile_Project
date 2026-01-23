@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import '../styles/app_styles.dart';
+import '../styles/strings.dart';
 import '../services/api_service.dart';
 import '../services/shared_preferences_service.dart';
 import 'signup_screen.dart';
@@ -32,7 +33,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       backgroundColor: AppStyles.backgroundColor,
       appBar: AppBar(
-        title: Text("Login (${widget.role})"),
+        title: Text("${AppStrings.loginTitle} (${widget.role})"),
         backgroundColor: AppStyles.primaryColor,
       ),
       body: Padding(
@@ -42,18 +43,21 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             children: [
               TextFormField(
-                decoration: const InputDecoration(labelText: "Email"),
+                decoration: const InputDecoration(labelText: AppStrings.email),
                 onSaved: (val) => email = val!.trim(),
-                validator: (val) =>
-                    (val == null || val.trim().isEmpty) ? "Enter email" : null,
+                validator: (val) => (val == null || val.trim().isEmpty)
+                    ? AppStrings.enterEmail
+                    : null,
               ),
               const SizedBox(height: AppStyles.mediumSpacing),
               TextFormField(
-                decoration: const InputDecoration(labelText: "Password"),
+                decoration: const InputDecoration(
+                  labelText: AppStrings.password,
+                ),
                 obscureText: true,
                 onSaved: (val) => password = val!.trim(),
                 validator: (val) => (val == null || val.trim().isEmpty)
-                    ? "Enter password"
+                    ? AppStrings.enterPassword
                     : null,
               ),
               const SizedBox(height: AppStyles.smallSpacing),
@@ -63,7 +67,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   onPressed: () {
                     // TODO: Forget password logic
                   },
-                  child: const Text("Forgot Password?"),
+                  child: const Text(AppStrings.forgotPassword),
                 ),
               ),
               const SizedBox(height: AppStyles.largeSpacing),
@@ -71,7 +75,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 width: double.infinity,
                 child: ElevatedButton(
                   style: AppStyles.primaryButtonStyle,
-                  child: const Text("Login"),
+                  child: const Text(AppStrings.login),
                   onPressed: () async {
                     if (!_formKey.currentState!.validate()) return;
                     _formKey.currentState!.save();
@@ -80,7 +84,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       final res = await ApiService.login(email, password);
 
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(res['message'] ?? "Done")),
+                        SnackBar(
+                          content: Text(res['message'] ?? AppStrings.done),
+                        ),
                       );
 
                       if (res['status'] != true) return;
@@ -150,7 +156,7 @@ class _LoginScreenState extends State<LoginScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text("Don't have an account? "),
+                  const Text(AppStrings.noAccount),
                   TextButton(
                     onPressed: () {
                       Navigator.push(
@@ -160,7 +166,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       );
                     },
-                    child: const Text("Sign Up"),
+                    child: const Text(AppStrings.signUp),
                   ),
                 ],
               ),

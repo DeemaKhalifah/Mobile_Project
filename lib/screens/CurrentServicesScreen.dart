@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../styles/app_styles.dart';
+import '../styles/strings.dart';
 import '../models/booking.dart';
 import '../models/customerwallet.dart';
 import '../models/service.dart';
@@ -35,13 +36,8 @@ class _CurrentServicesScreenState extends State<CurrentServicesScreen> {
       final services = await servicesFuture;
       final service = services.firstWhere(
         (s) => s.name == serviceName,
-        orElse: () => Service(
-          id: 0,
-          name: '',
-          price: 0.0,
-          image: '',
-          description: '',
-        ),
+        orElse: () =>
+            Service(id: 0, name: '', price: 0.0, image: '', description: ''),
       );
       return service.price > 0 ? service.price : null;
     } catch (_) {
@@ -127,25 +123,25 @@ class _CurrentServicesScreenState extends State<CurrentServicesScreen> {
     final servicePrice = await _getServicePrice(serviceName);
 
     if (servicePrice == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Could not determine service price for refund")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text(AppStrings.error)));
       return;
     }
 
     final ok = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text("Cancel booking"),
+        title: const Text(AppStrings.cancelOrder),
         content: const Text("Are you sure you want to cancel this booking?"),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text("No"),
+            child: const Text(AppStrings.cancel),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text("Yes, cancel"),
+            child: const Text(AppStrings.delete),
           ),
         ],
       ),
@@ -175,9 +171,9 @@ class _CurrentServicesScreenState extends State<CurrentServicesScreen> {
 
       setState(_loadBookings);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error canceling booking: $e")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Error canceling booking: $e")));
     }
   }
 
@@ -269,17 +265,18 @@ class _CurrentServicesScreenState extends State<CurrentServicesScreen> {
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
                             TextButton(
-                              onPressed:
-                                  isFinal ? null : () => _updateBooking(booking),
+                              onPressed: isFinal
+                                  ? null
+                                  : () => _updateBooking(booking),
                               child: const Text("Update"),
                             ),
                             TextButton(
                               onPressed: isFinal
                                   ? null
                                   : () => _cancelBooking(
-                                        booking.id!,
-                                        booking.serviceName,
-                                      ),
+                                      booking.id!,
+                                      booking.serviceName,
+                                    ),
                               child: const Text(
                                 "Cancel",
                                 style: TextStyle(color: Colors.red),
